@@ -1161,6 +1161,66 @@ input, button, select, textarea { font-family: inherit; }
   100% { transform: scale(1.3); opacity: 0; }
 }
 
+/* Floating scan button on the map */
+.map-scan-fab {
+  position: absolute;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 22px;
+  background: linear-gradient(135deg, var(--green), #059669);
+  border: none;
+  border-radius: 50px;
+  color: white;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 20px var(--green-glow), 0 2px 8px rgba(0,0,0,0.25);
+  transition: all 0.2s cubic-bezier(0.34,1.3,0.64,1);
+  white-space: nowrap;
+}
+
+.map-scan-fab:hover {
+  transform: translateX(-50%) translateY(-2px) scale(1.04);
+  box-shadow: 0 8px 28px var(--green-glow), 0 3px 12px rgba(0,0,0,0.3);
+}
+
+.map-scan-fab:active {
+  transform: translateX(-50%) scale(0.96);
+}
+
+.map-scan-fab.scanning-fab {
+  background: linear-gradient(135deg, #0d9488, #0f766e);
+  pointer-events: none;
+}
+
+.fab-icon {
+  font-size: 18px;
+  display: inline-block;
+  transition: transform 0.3s;
+}
+
+.map-scan-fab.scanning-fab .fab-icon {
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 640px) {
+  .map-scan-fab {
+    bottom: 126px;
+    padding: 11px 18px;
+    font-size: 13px;
+  }
+}
+
 /* Map type selector */
 .map-type-bar {
   position: absolute;
@@ -1199,13 +1259,171 @@ input, button, select, textarea { font-family: inherit; }
   color: var(--green);
 }
 
-/* Responsive */
-@media (max-width: 900px) {
+/* ============================================================
+   DRAWER HANDLE (hidden on desktop, shown on mobile)
+   ============================================================ */
+.drawer-handle {
+  display: none;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 0 2px;
+  cursor: pointer;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.drawer-knob {
+  width: 40px;
+  height: 4px;
+  background: var(--border-hover);
+  border-radius: 2px;
+  transition: background var(--transition);
+}
+
+.drawer-handle:hover .drawer-knob { background: var(--text-muted); }
+
+/* ============================================================
+   PRICING responsive
+   ============================================================ */
+@media (max-width: 800px) {
+  .pricing-grid { grid-template-columns: 1fr; max-width: 400px; }
+}
+
+/* ============================================================
+   TABLET  641 – 900px
+   ============================================================ */
+@media (min-width: 641px) and (max-width: 900px) {
   .app-page { flex-direction: column; }
-  .sidebar { width: 100%; min-width: unset; height: 45vh; }
-  .map-container { height: 55vh; }
-  .pricing-grid { grid-template-columns: 1fr; }
-  .map-search { width: 80%; }
+  .sidebar {
+    width: 100%; min-width: unset;
+    height: auto; max-height: 38vh;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    overflow-y: auto;
+  }
+  .map-container { flex: 1; min-height: 0; }
+  .map-search { width: calc(100% - 28px); max-width: 380px; }
+  .map-type-bar { flex-wrap: wrap; max-width: 175px; justify-content: flex-end; }
+}
+
+/* ============================================================
+   MOBILE  ≤ 640px  —  bottom drawer
+   ============================================================ */
+@media (max-width: 640px) {
+
+  /* auth / pricing pages */
+  .auth-card { padding: 32px 22px; margin: 16px; }
+  .pricing-header h1 { font-size: 26px; }
+
+  /* App layout: map full-screen, sidebar is a bottom sheet */
+  .app-page { position: relative; height: 100dvh; height: 100vh; }
+
+  .map-container {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+  }
+
+  /* Bottom drawer */
+  .sidebar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    width: 100%;
+    min-width: unset;
+    height: 80dvh;
+    height: 80vh;
+    max-height: 80vh;
+    border-right: none;
+    border-top: 1px solid var(--border);
+    border-radius: 22px 22px 0 0;
+    z-index: 200;
+    transform: translateY(calc(100% - 116px));
+    transition: transform 0.38s cubic-bezier(0.34, 1.15, 0.64, 1);
+    box-shadow: 0 -8px 40px rgba(0,0,0,0.28);
+    overflow: hidden;
+  }
+
+  .sidebar.drawer-open {
+    transform: translateY(0);
+    overflow-y: auto;
+  }
+
+  /* Show handle on mobile */
+  .drawer-handle { display: flex !important; }
+
+  /* Compact spacing on mobile */
+  .sidebar-header { padding: 12px 16px; }
+  .header-btn { width: 30px; height: 30px; font-size: 13px; }
+  .s-logo { width: 30px; height: 30px; font-size: 14px; }
+  .s-logo-text h1 { font-size: 15px; }
+
+  .user-pill { padding: 7px 16px; }
+  .user-avatar { width: 26px; height: 26px; font-size: 11px; }
+  .user-name { font-size: 12px; }
+
+  .scan-indicator { padding: 8px 16px; font-size: 12px; }
+  .auto-scan-row { padding: 6px 16px; font-size: 11px; }
+  .stats-bar { padding: 8px 14px; gap: 5px; }
+  .stat-value { font-size: 17px; }
+  .stat-label { font-size: 8px; }
+
+  .list-header { padding: 8px 14px 4px; }
+  .search-row { padding: 5px 14px; }
+  .pharmacy-list { padding: 0 14px 20px; }
+  .pharmacy-card { padding: 9px 10px; }
+  .p-name { font-size: 12px; }
+  .p-address { font-size: 10px; }
+
+  .config-panel { padding: 8px 16px; }
+  .config-row { margin-bottom: 6px; }
+  .config-row label { font-size: 11px; }
+  .range-val { font-size: 11px; min-width: 36px; }
+
+  /* Map overlays */
+  .map-overlay { display: none; } /* legend hidden — space is limited */
+
+  .map-search {
+    left: 14px;
+    transform: none;
+    width: calc(100% - 80px);
+    max-width: unset;
+    top: 10px;
+  }
+
+  .map-search-input {
+    font-size: 13px;
+    padding: 9px 12px;
+  }
+
+  .map-type-bar {
+    bottom: 126px;
+    right: 8px;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .map-type-btn {
+    font-size: 10px;
+    padding: 5px 8px;
+  }
+
+  .move-hint {
+    bottom: 126px;
+    left: 14px;
+    transform: none;
+    font-size: 11px;
+    padding: 7px 12px;
+  }
+
+  /* Theme toggle float */
+  .theme-toggle-float {
+    top: 10px;
+    right: 10px;
+    width: 36px; height: 36px;
+    font-size: 15px;
+  }
 }
 </style>
 </head>
@@ -1434,7 +1652,11 @@ input, button, select, textarea { font-family: inherit; }
 
 <!-- ==================== PAGE: MAIN APP ==================== -->
 <div class="page app-page" id="pageApp">
-  <div class="sidebar">
+  <div class="sidebar" id="sidebar">
+    <!-- Mobile drag handle -->
+    <div class="drawer-handle" onclick="toggleDrawer()">
+      <div class="drawer-knob"></div>
+    </div>
     <div class="sidebar-header">
       <div class="sidebar-header-left">
         <div class="s-logo">⚕️</div>
@@ -1564,6 +1786,11 @@ input, button, select, textarea { font-family: inherit; }
       <button class="map-type-btn" data-type="terrain" onclick="setMapType('terrain',this)">⛰ Relief</button>
     </div>
 
+    <button class="map-scan-fab" id="mapScanFab" onclick="mapFabScan()">
+      <span class="fab-icon">⟳</span>
+      <span class="fab-label">Scanner cette zone</span>
+    </button>
+
     <div class="move-hint" id="moveHint">
       <span class="hi">👆</span>
       Déplacez et zoomez — scan automatique
@@ -1602,6 +1829,15 @@ try {
     document.getElementById('themeToggle').textContent = icon;
   }
 } catch(e) {}
+
+// ===================== MOBILE DRAWER =====================
+function toggleDrawer() {
+  document.getElementById('sidebar')?.classList.toggle('drawer-open');
+}
+
+function closeDrawer() {
+  document.getElementById('sidebar')?.classList.remove('drawer-open');
+}
 
 // ===================== PAGE NAVIGATION =====================
 function showPage(id) {
@@ -2006,12 +2242,30 @@ function focusPharmacy(idx) {
   const p = pharmacies[idx];
   const was = autoScanEnabled;
   autoScanEnabled = false;
+  closeDrawer(); // close mobile drawer to see the map
   map.panTo({lat:p.lat,lng:p.lng});
   map.setZoom(17);
   setTimeout(() => { google.maps.event.trigger(pharmacyMarkers[idx],'click'); autoScanEnabled = was; }, 400);
 }
 
 // ===================== SCAN =====================
+function mapFabScan() {
+  const fab = document.getElementById('mapScanFab');
+  if (!fab || isScanning) return;
+  fab.classList.add('scanning-fab');
+  fab.querySelector('.fab-label').textContent = 'Scan en cours...';
+  closeDrawer();
+  scanCurrentView();
+  // Reset button state when scan finishes (updateScanUI is called after)
+  const reset = setInterval(() => {
+    if (!isScanning) {
+      fab.classList.remove('scanning-fab');
+      fab.querySelector('.fab-label').textContent = 'Scanner cette zone';
+      clearInterval(reset);
+    }
+  }, 400);
+}
+
 function scanCurrentView() {
   if (!placesService || isScanning) return;
   isScanning = true;
@@ -2369,6 +2623,8 @@ function initMap() {
   catch(e) { console.warn('Places API unavailable'); }
 
   map.addListener('idle', onMapIdle);
+  map.addListener('click', closeDrawer);
+  map.addListener('dragstart', closeDrawer);
 
   // Places Autocomplete — location search on the map
   try {
