@@ -2,7 +2,7 @@
 <html lang="fr" data-theme="dark">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Chaînage Pro — Pharmacies Maroc</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -94,6 +94,14 @@ body {
 }
 
 input, button, select, textarea { font-family: inherit; }
+
+/* iOS Safari: prevent auto-zoom on input focus (requires font-size ≥ 16px) */
+@supports (-webkit-touch-callout: none) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  select, textarea { font-size: 16px !important; }
+}
 
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -1161,6 +1169,68 @@ input, button, select, textarea { font-family: inherit; }
   100% { transform: scale(1.3); opacity: 0; }
 }
 
+/* Add custom point button */
+.map-add-point-btn {
+  position: absolute;
+  top: 68px;
+  left: 14px;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  background: var(--bg-overlay);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+
+.map-add-point-btn:hover {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.map-add-point-btn.active {
+  background: var(--red-dim);
+  border-color: var(--red);
+  color: var(--red);
+  box-shadow: 0 0 0 3px var(--red-dim), var(--shadow-md);
+}
+
+.add-mode-banner {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 7;
+  background: rgba(239,68,68,0.9);
+  color: white;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 16px;
+  letter-spacing: 0.3px;
+  display: none;
+}
+
+.add-mode-banner.visible { display: block; }
+
+@media (max-width: 640px) {
+  .map-add-point-btn {
+    top: 60px;
+    padding: 8px 11px;
+    font-size: 12px;
+  }
+  .map-add-point-btn .btn-add-label { display: none; }
+}
+
 /* Floating scan button on the map */
 .map-scan-fab {
   position: absolute;
@@ -1752,10 +1822,20 @@ input, button, select, textarea { font-family: inherit; }
   </div>
 
   <div class="map-container">
+    <div class="add-mode-banner" id="addModeBanner">
+      📌 Mode ajout — Tapez sur la carte pour placer un point &nbsp;·&nbsp;
+      <span style="text-decoration:underline;cursor:pointer;" onclick="toggleAddPointMode()">Annuler</span>
+    </div>
+
     <div class="map-search">
       <input id="mapSearchInput" type="text" class="map-search-input"
              placeholder="🔍 Rechercher une ville, adresse..." autocomplete="off" />
     </div>
+
+    <button class="map-add-point-btn" id="addPointBtn" onclick="toggleAddPointMode()" title="Ajouter un point personnalisé">
+      📌 <span class="btn-add-label">Ajouter un point</span>
+    </button>
+
     <div id="map"></div>
     <div class="map-scan-bar" id="mapScanBar"></div>
 
@@ -2565,6 +2645,119 @@ function centerOnLiveLocation() {
   }
 }
 
+// ===================== CUSTOM POINTS =====================
+let addPointMode      = false;
+let customPoints      = [];
+let customPointMarkers  = [];
+let customPointCircles  = [];
+
+function loadCustomPoints() {
+  try {
+    customPoints = JSON.parse(localStorage.getItem('chainage-custom-points') || '[]');
+  } catch(e) { customPoints = []; }
+  renderCustomPoints();
+}
+
+function saveCustomPoints() {
+  try { localStorage.setItem('chainage-custom-points', JSON.stringify(customPoints)); } catch(e) {}
+}
+
+function renderCustomPoints() {
+  customPointMarkers.forEach(m => m.setMap(null));
+  customPointCircles.forEach(c => c.setMap(null));
+  customPointMarkers = [];
+  customPointCircles = [];
+
+  customPoints.forEach(pt => {
+    const marker = new google.maps.Marker({
+      position: {lat: pt.lat, lng: pt.lng},
+      map,
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        fillColor: '#ef4444',
+        fillOpacity: 1,
+        strokeColor: '#ffffff',
+        strokeWeight: 2.5,
+        scale: 9
+      },
+      title: pt.name,
+      zIndex: 20
+    });
+
+    const circle = new google.maps.Circle({
+      center: {lat: pt.lat, lng: pt.lng},
+      radius: pt.radius,
+      fillColor: '#ef4444',
+      fillOpacity: 0.07,
+      strokeColor: '#ef4444',
+      strokeOpacity: 0.6,
+      strokeWeight: 2,
+      map,
+      clickable: false,
+      zIndex: 3
+    });
+
+    marker.addListener('click', () => {
+      infoWindow.setContent(`
+        <div style="font-family:'DM Sans',sans-serif;padding:8px;min-width:200px;background:var(--infowindow-bg);color:var(--infowindow-text);">
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px;color:#ef4444;">📌 ${pt.name}</div>
+          <div style="font-size:11px;color:var(--infowindow-muted);margin-bottom:4px;">
+            ${pt.lat.toFixed(5)}, ${pt.lng.toFixed(5)}
+          </div>
+          <div style="font-size:11px;color:var(--infowindow-muted);margin-bottom:10px;">
+            Rayon : ${pt.radius}m
+          </div>
+          <button onclick="deleteCustomPoint('${pt.id}')"
+            style="background:#ef4444;color:#fff;border:none;border-radius:7px;padding:7px 0;font-size:12px;font-weight:700;cursor:pointer;width:100%;">
+            🗑 Supprimer ce point
+          </button>
+        </div>
+      `);
+      infoWindow.open(map, marker);
+    });
+
+    customPointMarkers.push(marker);
+    customPointCircles.push(circle);
+  });
+}
+
+function addCustomPoint(lat, lng) {
+  const name = prompt('Nom du point (ex: Future pharmacie, Projet A…) :', 'Point personnalisé');
+  if (name === null) return; // user cancelled
+  const pt = {
+    id: Date.now().toString(),
+    lat, lng,
+    name: name.trim() || 'Point personnalisé',
+    radius: MIN_DISTANCE
+  };
+  customPoints.push(pt);
+  saveCustomPoints();
+  renderCustomPoints();
+}
+
+function deleteCustomPoint(id) {
+  customPoints = customPoints.filter(p => p.id !== id);
+  saveCustomPoints();
+  renderCustomPoints();
+  if (infoWindow) infoWindow.close();
+}
+
+function toggleAddPointMode() {
+  addPointMode = !addPointMode;
+  const btn    = document.getElementById('addPointBtn');
+  const banner = document.getElementById('addModeBanner');
+  const mapEl  = document.getElementById('map');
+  if (addPointMode) {
+    btn?.classList.add('active');
+    banner?.classList.add('visible');
+    if (mapEl) mapEl.style.cursor = 'crosshair';
+  } else {
+    btn?.classList.remove('active');
+    banner?.classList.remove('visible');
+    if (mapEl) mapEl.style.cursor = '';
+  }
+}
+
 // ===================== INIT MAP =====================
 function initMapIfNeeded() {
   if (mapInitialized) return;
@@ -2623,8 +2816,14 @@ function initMap() {
   catch(e) { console.warn('Places API unavailable'); }
 
   map.addListener('idle', onMapIdle);
-  map.addListener('click', closeDrawer);
   map.addListener('dragstart', closeDrawer);
+  map.addListener('click', e => {
+    if (addPointMode) {
+      addCustomPoint(e.latLng.lat(), e.latLng.lng());
+    } else {
+      closeDrawer();
+    }
+  });
 
   // Places Autocomplete — location search on the map
   try {
@@ -2648,6 +2847,7 @@ function initMap() {
   } catch(e) { console.warn('Autocomplete unavailable'); }
 
   startLiveLocation();
+  loadCustomPoints();
 
   // Initial center on user position
   if (navigator.geolocation) {
