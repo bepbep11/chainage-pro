@@ -799,6 +799,31 @@ input, button, select, textarea { font-family: inherit; }
 }
 .btn-scan-sm:hover { background: rgba(16,185,129,0.2); }
 
+/* Search */
+.search-row {
+  padding: 8px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.search-input {
+  width: 100%;
+  padding: 9px 14px;
+  background: var(--bg-input);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 13px;
+  outline: none;
+  transition: all var(--transition);
+}
+
+.search-input:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px var(--green-dim);
+}
+
+.search-input::placeholder { color: var(--text-muted); }
+
 /* Stats */
 .stats-bar {
   display: flex;
@@ -1077,12 +1102,110 @@ input, button, select, textarea { font-family: inherit; }
 .move-hint .hi { animation: bob 2s ease-in-out infinite; }
 @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
 
+/* Map location search overlay */
+.map-search {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  width: 320px;
+}
+
+.map-search-input {
+  width: 100%;
+  padding: 11px 16px;
+  background: var(--bg-overlay);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  outline: none;
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition);
+}
+
+.map-search-input:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px var(--green-dim), var(--shadow-md);
+}
+
+.map-search-input::placeholder { color: var(--text-muted); }
+
+/* Live location dot */
+.live-dot-inner {
+  position: absolute;
+  width: 18px; height: 18px;
+  background: #3b82f6;
+  border: 3px solid white;
+  border-radius: 50%;
+  box-shadow: 0 2px 10px rgba(59,130,246,0.7);
+  z-index: 2;
+}
+
+.live-dot-pulse {
+  position: absolute;
+  top: -16px; left: -16px;
+  width: 50px; height: 50px;
+  background: rgba(59,130,246,0.22);
+  border-radius: 50%;
+  animation: live-pulse 2s ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes live-pulse {
+  0%   { transform: scale(0.3); opacity: 1; }
+  100% { transform: scale(1.3); opacity: 0; }
+}
+
+/* Map type selector */
+.map-type-bar {
+  position: absolute;
+  bottom: 60px;
+  right: 14px;
+  z-index: 5;
+  display: flex;
+  gap: 5px;
+}
+
+.map-type-btn {
+  padding: 7px 11px;
+  background: var(--bg-overlay);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  box-shadow: var(--shadow-sm);
+  white-space: nowrap;
+}
+
+.map-type-btn:hover {
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+}
+
+.map-type-btn.active {
+  background: var(--green-dim);
+  border-color: var(--green);
+  color: var(--green);
+}
+
 /* Responsive */
 @media (max-width: 900px) {
   .app-page { flex-direction: column; }
   .sidebar { width: 100%; min-width: unset; height: 45vh; }
   .map-container { height: 55vh; }
   .pricing-grid { grid-template-columns: 1fr; }
+  .map-search { width: 80%; }
 }
 </style>
 </head>
@@ -1322,6 +1445,7 @@ input, button, select, textarea { font-family: inherit; }
       </div>
       <div class="header-actions">
         <button class="header-btn" onclick="toggleTheme()" title="Thème" id="sidebarThemeBtn">🌙</button>
+        <button class="header-btn" onclick="centerOnLiveLocation()" title="Ma position live">📍</button>
         <button class="header-btn" onclick="showPage('pagePricing')" title="Plans">💎</button>
       </div>
     </div>
@@ -1354,15 +1478,15 @@ input, button, select, textarea { font-family: inherit; }
     <div class="stats-bar">
       <div class="stat-chip green">
         <div class="stat-value" id="statValid">0</div>
-        <div class="stat-label">Conformes</div>
+        <div class="stat-label">Pharmacies</div>
       </div>
       <div class="stat-chip red">
-        <div class="stat-value" id="statConflict">0</div>
-        <div class="stat-label">Conflits</div>
+        <div class="stat-value" id="statZones">0</div>
+        <div class="stat-label">Zones libres</div>
       </div>
       <div class="stat-chip amber">
-        <div class="stat-value" id="statTotal">0</div>
-        <div class="stat-label">Total</div>
+        <div class="stat-value" id="statTotal">300m</div>
+        <div class="stat-label">Rayon</div>
       </div>
     </div>
 
@@ -1370,9 +1494,11 @@ input, button, select, textarea { font-family: inherit; }
       <h3>Pharmacies</h3>
       <div class="filter-pills">
         <button class="filter-pill active" onclick="setFilter('all',this)">Tous</button>
-        <button class="filter-pill" onclick="setFilter('conflict',this)">Conflits</button>
-        <button class="filter-pill" onclick="setFilter('valid',this)">OK</button>
       </div>
+    </div>
+
+    <div class="search-row">
+      <input type="text" id="searchInput" class="search-input" placeholder="🔍 Rechercher une pharmacie..." oninput="filterByName(this.value)" />
     </div>
 
     <div class="pharmacy-list" id="pharmacyList">
@@ -1396,10 +1522,18 @@ input, button, select, textarea { font-family: inherit; }
           <div class="toggle-thumb"></div>
         </label>
       </div>
+      <div class="config-row">
+        <label>Effacer</label>
+        <button class="btn-scan-sm" onclick="clearOverlays()" style="margin-left:auto;border-color:rgba(239,68,68,0.25);color:var(--red);background:var(--red-dim);">✕ Zones &amp; Cercles</button>
+      </div>
     </div>
   </div>
 
   <div class="map-container">
+    <div class="map-search">
+      <input id="mapSearchInput" type="text" class="map-search-input"
+             placeholder="🔍 Rechercher une ville, adresse..." autocomplete="off" />
+    </div>
     <div id="map"></div>
     <div class="map-scan-bar" id="mapScanBar"></div>
 
@@ -1407,16 +1541,27 @@ input, button, select, textarea { font-family: inherit; }
       <h4>Légende</h4>
       <div class="legend-item">
         <div class="legend-dot green"></div>
-        Conforme (≥ <span id="legendDist">300</span>m)
+        Pharmacie (≥ <span id="legendDist">300</span>m)
       </div>
       <div class="legend-item">
-        <div class="legend-dot red"></div>
-        Conflit (&lt; <span id="legendDist2">300</span>m)
+        <div style="width:11px;height:11px;background:rgba(249,115,22,0.35);border:2px solid #f97316;flex-shrink:0;border-radius:2px;"></div>
+        Zone libre possible
       </div>
       <div class="legend-item">
         <div class="legend-dot amber"></div>
         Périmètre
       </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:rgba(59,130,246,0.25);border-color:#3b82f6;"></div>
+        Votre position
+      </div>
+    </div>
+
+    <div class="map-type-bar">
+      <button class="map-type-btn active" data-type="roadmap" onclick="setMapType('roadmap',this)">🗺 Carte</button>
+      <button class="map-type-btn" data-type="satellite" onclick="setMapType('satellite',this)">🛰 Satellite</button>
+      <button class="map-type-btn" data-type="hybrid" onclick="setMapType('hybrid',this)">🏙 Hybride</button>
+      <button class="map-type-btn" data-type="terrain" onclick="setMapType('terrain',this)">⛰ Relief</button>
     </div>
 
     <div class="move-hint" id="moveHint">
@@ -1442,8 +1587,8 @@ function toggleTheme() {
   document.getElementById('themeToggle').textContent = icon;
   document.getElementById('sidebarThemeBtn').textContent = icon;
   try { localStorage.setItem('chainage-theme', next); } catch(e) {}
-  // Update map style if map exists
-  if (map && map.setOptions) {
+  // Update map style only when in roadmap mode (satellite/hybrid/terrain don't use custom styles)
+  if (map && map.setOptions && currentMapType === 'roadmap') {
     map.setOptions({ styles: next === 'dark' ? darkMapStyle : lightMapStyle });
   }
 }
@@ -1695,14 +1840,20 @@ let MIN_DISTANCE = 300;
 let map, placesService;
 let pharmacyMarkers = [];
 let pharmacyCircles = [];
+let zonesCanvas = null;
 let pharmacies = [];
 let infoWindow;
 let autoScanEnabled = false;
 let currentFilter = 'all';
+let currentMapType = 'roadmap';
+let searchQuery = '';
 let scanDebounceTimer = null;
 let isScanning = false;
 let hintVisible = true;
 let mapInitialized = false;
+let liveDot = null;
+let liveAccuracyCircle = null;
+let watchId = null;
 
 const darkMapStyle = [
   { elementType:"geometry", stylers:[{color:"#0f172a"}] },
@@ -1742,19 +1893,16 @@ function haversineDistance(lat1,lon1,lat2,lon2) {
 
 function analyzeChainage() {
   pharmacies.forEach((p,i) => {
-    p.conflicts = [];
     p.minDistance = Infinity;
     pharmacies.forEach((q,j) => {
       if (i===j) return;
       const d = haversineDistance(p.lat,p.lng,q.lat,q.lng);
-      if (d < MIN_DISTANCE) p.conflicts.push({name:q.name,distance:Math.round(d)});
       if (d < p.minDistance) p.minDistance = Math.round(d);
     });
-    p.status = p.conflicts.length > 0 ? 'conflict' : 'valid';
+    p.status = 'valid';
   });
-  document.getElementById('statValid').textContent = pharmacies.filter(p=>p.status==='valid').length;
-  document.getElementById('statConflict').textContent = pharmacies.filter(p=>p.status==='conflict').length;
-  document.getElementById('statTotal').textContent = pharmacies.length;
+  document.getElementById('statValid').textContent = pharmacies.length;
+  document.getElementById('statTotal').textContent = MIN_DISTANCE + 'm';
 }
 
 function clearMap() {
@@ -1762,6 +1910,8 @@ function clearMap() {
   pharmacyCircles.forEach(c=>c.setMap(null));
   pharmacyMarkers = [];
   pharmacyCircles = [];
+  if (zonesCanvas) zonesCanvas.style.display = 'none';
+  document.getElementById('statZones').textContent = 0;
   if (infoWindow) infoWindow.close();
 }
 
@@ -1769,36 +1919,31 @@ function renderPharmacies() {
   clearMap();
   analyzeChainage();
   const showCirc = document.getElementById('showCircles').checked;
-  const isDark = getTheme() === 'dark';
+  // Luminous green — visible on roadmap, satellite, hybrid, terrain
+  const markerFill  = '#34d399';  // bright emerald
+  const markerStroke = '#ffffff'; // white border → pops on any background
+  const circleColor  = '#10b981'; // standard green for perimeters
 
   pharmacies.forEach((p,idx) => {
-    const bad = p.status === 'conflict';
-    const color = bad ? '#ef4444' : '#10b981';
-
     const marker = new google.maps.Marker({
       position:{lat:p.lat,lng:p.lng}, map,
       icon:{
         path: google.maps.SymbolPath.CIRCLE,
-        fillColor: color, fillOpacity:1,
-        strokeColor: isDark ? '#fff' : '#111', strokeWeight:2, scale:9
+        fillColor: markerFill, fillOpacity:1,
+        strokeColor: markerStroke, strokeWeight:2.5, scale:10
       },
       title: p.name,
-      zIndex: bad ? 10 : 5
+      zIndex: 5
     });
 
     marker.addListener('click', () => {
-      const ch = p.conflicts.length > 0
-        ? p.conflicts.map(c=>`<div style="color:#ef4444;font-size:12px;margin-top:3px;">⚠ ${c.name}: <b>${c.distance}m</b></div>`).join('')
-        : '<div style="color:#10b981;font-size:12px;">✓ Aucun conflit</div>';
-
       infoWindow.setContent(`
         <div style="font-family:'DM Sans',sans-serif;padding:6px;min-width:220px;background:var(--infowindow-bg);color:var(--infowindow-text);">
           <div style="font-weight:700;font-size:14px;margin-bottom:3px;">${p.name}</div>
           <div style="color:var(--infowindow-muted);font-size:11px;margin-bottom:8px;">${p.address}</div>
           <div style="border-top:1px solid var(--border);padding-top:8px;">
-            <div style="font-size:10px;color:var(--infowindow-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Chaînage (${MIN_DISTANCE}m)</div>
-            <div style="font-size:13px;margin-bottom:4px;">Dist. min: <b>${p.minDistance===Infinity?'—':p.minDistance+'m'}</b></div>
-            ${ch}
+            <div style="font-size:10px;color:var(--infowindow-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Voisin le plus proche</div>
+            <div style="font-size:14px;font-weight:700;color:#10b981;">${p.minDistance===Infinity?'Aucun voisin':p.minDistance+'m'}</div>
           </div>
         </div>
       `);
@@ -1810,8 +1955,8 @@ function renderPharmacies() {
     if (showCirc) {
       pharmacyCircles.push(new google.maps.Circle({
         center:{lat:p.lat,lng:p.lng}, radius:MIN_DISTANCE,
-        fillColor:color, fillOpacity:0.06,
-        strokeColor:color, strokeOpacity:0.3, strokeWeight:1.5,
+        fillColor: circleColor, fillOpacity: 0.07,
+        strokeColor: circleColor, strokeOpacity: 0.65, strokeWeight: 2,
         map, clickable:false
       }));
     }
@@ -1819,6 +1964,7 @@ function renderPharmacies() {
 
   renderList();
   updateScanUI(false);
+  computePossibleZones();
 }
 
 function renderList() {
@@ -1829,24 +1975,24 @@ function renderList() {
   }
 
   let list = [...pharmacies];
-  if (currentFilter==='conflict') list = list.filter(p=>p.status==='conflict');
-  else if (currentFilter==='valid') list = list.filter(p=>p.status==='valid');
-  list.sort((a,b) => {
-    if (a.status==='conflict'&&b.status!=='conflict') return -1;
-    if (a.status!=='conflict'&&b.status==='conflict') return 1;
-    return (a.minDistance||Infinity) - (b.minDistance||Infinity);
-  });
+  if (searchQuery) list = list.filter(p => p.name.toLowerCase().includes(searchQuery));
+  list.sort((a,b) => (a.minDistance||Infinity) - (b.minDistance||Infinity));
 
-  if (!list.length) { c.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-muted);font-size:13px;">Aucune avec ce filtre.</div>`; return; }
+  if (!list.length) { c.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-muted);font-size:13px;">Aucune pharmacie trouvée.</div>`; return; }
 
   c.innerHTML = list.map(p => {
     const idx = pharmacies.indexOf(p);
-    return `<div class="pharmacy-card ${p.status}" onclick="focusPharmacy(${idx})">
-      <div class="card-top"><div class="p-name">${p.name}</div><div class="p-badge ${p.status}">${p.status==='conflict'?'Conflit':'OK'}</div></div>
+    return `<div class="pharmacy-card valid" onclick="focusPharmacy(${idx})">
+      <div class="card-top"><div class="p-name">${p.name}</div></div>
       <div class="p-address">${p.address}</div>
-      <div class="p-meta"><span>Min:</span> ${p.minDistance===Infinity?'—':p.minDistance+'m'}${p.conflicts.length?` <span style="color:var(--red);">⚠ ${p.conflicts.length}</span>`:''}</div>
+      <div class="p-meta"><span>Voisin:</span> ${p.minDistance===Infinity?'—':p.minDistance+'m'}</div>
     </div>`;
   }).join('');
+}
+
+function filterByName(q) {
+  searchQuery = q.trim().toLowerCase();
+  renderList();
 }
 
 function setFilter(f, el) {
@@ -1949,11 +2095,221 @@ function updateDistance(v) {
   MIN_DISTANCE = parseInt(v);
   document.getElementById('distanceValue').textContent = v+'m';
   document.getElementById('legendDist').textContent = v;
-  document.getElementById('legendDist2').textContent = v;
+  document.getElementById('statTotal').textContent = v+'m';
   if (pharmacies.length) renderPharmacies();
 }
 
 function toggleCircles() { if (pharmacies.length) renderPharmacies(); }
+
+// ===================== CLEAR OVERLAYS =====================
+function clearOverlays() {
+  // Hide zone canvas
+  if (zonesCanvas) {
+    zonesCanvas.style.display = 'none';
+    document.getElementById('statZones').textContent = 0;
+  }
+  // Remove pharmacy markers (green dots)
+  pharmacyMarkers.forEach(m => m.setMap(null));
+  pharmacyMarkers = [];
+  // Remove pharmacy circles
+  pharmacyCircles.forEach(c => c.setMap(null));
+  pharmacyCircles = [];
+  // Reset data & UI
+  pharmacies = [];
+  document.getElementById('statValid').textContent = 0;
+  document.getElementById('statTotal').textContent = MIN_DISTANCE + 'm';
+  renderList();
+  updateScanUI(false);
+  if (infoWindow) infoWindow.close();
+  // Uncheck circle toggle for consistency
+  const chk = document.getElementById('showCircles');
+  if (chk) chk.checked = true; // reset to default ON for next scan
+}
+
+// ===================== MAP TYPE =====================
+function setMapType(type, el) {
+  currentMapType = type;
+  document.querySelectorAll('.map-type-btn').forEach(b => b.classList.remove('active'));
+  if (el) el.classList.add('active');
+  if (!map) return;
+
+  if (type === 'satellite') {
+    map.setMapTypeId(google.maps.MapTypeId.SATELLITE);
+    map.setOptions({ styles: [] });
+  } else if (type === 'hybrid') {
+    map.setMapTypeId(google.maps.MapTypeId.HYBRID);
+    map.setOptions({ styles: [] });
+  } else if (type === 'terrain') {
+    map.setMapTypeId(google.maps.MapTypeId.TERRAIN);
+    map.setOptions({ styles: [] });
+  } else {
+    map.setMapTypeId(google.maps.MapTypeId.ROADMAP);
+    map.setOptions({ styles: getTheme() === 'dark' ? darkMapStyle : lightMapStyle });
+  }
+}
+
+// ===================== POSSIBLE ZONES (canvas blob) =====================
+function computePossibleZones() {
+  if (pharmacies.length < 2) {
+    if (zonesCanvas) zonesCanvas.style.display = 'none';
+    document.getElementById('statZones').textContent = 0;
+    return;
+  }
+
+  const bounds = map.getBounds();
+  if (!bounds) { document.getElementById('statZones').textContent = 0; return; }
+
+  const mapEl = document.getElementById('map');
+  const W = mapEl.offsetWidth;
+  const H = mapEl.offsetHeight;
+  if (!W || !H) return;
+
+  // Create canvas once, reuse afterwards
+  if (!zonesCanvas) {
+    zonesCanvas = document.createElement('canvas');
+    zonesCanvas.style.cssText = 'position:absolute;top:0;left:0;pointer-events:none;z-index:3;';
+    mapEl.parentElement.insertBefore(zonesCanvas, mapEl.nextSibling);
+  }
+
+  zonesCanvas.width  = W;
+  zonesCanvas.height = H;
+  zonesCanvas.style.width  = W + 'px';
+  zonesCanvas.style.height = H + 'px';
+  zonesCanvas.style.display = 'block';
+
+  const ne = bounds.getNorthEast();
+  const sw = bounds.getSouthWest();
+  const latSpan = ne.lat() - sw.lat();
+  const lngSpan = ne.lng() - sw.lng();
+
+  // Sample at reduced resolution for speed, then scale up
+  const STEP = 6; // pixels per sample
+  const cW = Math.ceil(W / STEP);
+  const cH = Math.ceil(H / STEP);
+
+  // Off-screen buffer at low resolution
+  const off = document.createElement('canvas');
+  off.width  = cW;
+  off.height = cH;
+  const offCtx = off.getContext('2d');
+  const img = offCtx.createImageData(cW, cH);
+
+  // Pre-build pharmacy bounding boxes for fast early-reject
+  const latD = (MIN_DISTANCE * 2.8) / 111320;
+
+  let freeArea = 0;
+
+  for (let yi = 0; yi < cH; yi++) {
+    for (let xi = 0; xi < cW; xi++) {
+      // Pixel centre → geographic coords
+      const lat = ne.lat() - ((yi + 0.5) / cH) * latSpan;
+      const lng = sw.lng() + ((xi + 0.5) / cW) * lngSpan;
+
+      // Fast bounding-box pre-filter: skip if no pharmacy is nearby
+      let maybeNear = false;
+      for (const p of pharmacies) {
+        if (Math.abs(lat - p.lat) < latD) { maybeNear = true; break; }
+      }
+      if (!maybeNear) continue;
+
+      // Full haversine pass
+      let minDist = Infinity;
+      let nearAny  = false;
+      for (const p of pharmacies) {
+        const d = haversineDistance(lat, lng, p.lat, p.lng);
+        if (d < minDist) minDist = d;
+        if (d < MIN_DISTANCE * 2.8) nearAny = true;
+      }
+
+      // Zone libre: outside all circles but within neighbourhood
+      if (minDist >= MIN_DISTANCE && nearAny) {
+        const idx = (yi * cW + xi) * 4;
+        // Intensity: peaks around 1.4×MIN_DISTANCE, smooth falloff
+        const t = 1 - Math.abs((minDist / MIN_DISTANCE) - 1.4) / 1.4;
+        const alpha = Math.max(0, Math.min(1, t)) * 0.85;
+        // Orange #f97316 — high contrast on green circles and all map types
+        img.data[idx]   = 249; // R
+        img.data[idx+1] = 115; // G
+        img.data[idx+2] = 22;  // B
+        img.data[idx+3] = Math.round(alpha * 255);
+        freeArea++;
+      }
+    }
+  }
+
+  offCtx.putImageData(img, 0, 0);
+
+  // Scale up with smoothing → blob effect
+  const ctx = zonesCanvas.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(off, 0, 0, W, H);
+
+  // CSS blur for smooth blob edges
+  zonesCanvas.style.filter = 'blur(22px)';
+  zonesCanvas.style.opacity = '0.78';
+
+  const approxKm2 = Math.round(freeArea * (STEP * STEP) * 0.0001);
+  document.getElementById('statZones').textContent = freeArea > 0 ? freeArea : 0;
+}
+
+// ===================== LIVE LOCATION =====================
+// LiveDotOverlay is created lazily inside initMap() after google.maps is loaded
+let LiveDotOverlay = null;
+
+function startLiveLocation() {
+  if (!navigator.geolocation || watchId !== null) return;
+  watchId = navigator.geolocation.watchPosition(
+    pos => {
+      const latLng = new google.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
+      const accuracy = Math.min(pos.coords.accuracy, 800);
+
+      if (!liveDot) {
+        liveDot = new LiveDotOverlay();
+        liveDot.setMap(map);
+      }
+      liveDot.moveTo(latLng);
+
+      if (!liveAccuracyCircle) {
+        liveAccuracyCircle = new google.maps.Circle({
+          center: latLng,
+          radius: accuracy,
+          fillColor: '#3b82f6',
+          fillOpacity: 0.08,
+          strokeColor: '#3b82f6',
+          strokeOpacity: 0.3,
+          strokeWeight: 1,
+          map,
+          clickable: false,
+          zIndex: 1
+        });
+      } else {
+        liveAccuracyCircle.setCenter(latLng);
+        liveAccuracyCircle.setRadius(accuracy);
+      }
+    },
+    err => console.warn('Géolocalisation:', err.message),
+    {enableHighAccuracy: true, maximumAge: 4000, timeout: 15000}
+  );
+}
+
+function centerOnLiveLocation() {
+  if (!map) return;
+  if (liveDot && liveDot._latLng) {
+    map.panTo(liveDot._latLng);
+    map.setZoom(17);
+  } else if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        map.panTo({lat: pos.coords.latitude, lng: pos.coords.longitude});
+        map.setZoom(17);
+      },
+      err => console.warn('Location:', err.message),
+      {enableHighAccuracy: true, timeout: 10000}
+    );
+  }
+}
 
 // ===================== INIT MAP =====================
 function initMapIfNeeded() {
@@ -1963,6 +2319,39 @@ function initMapIfNeeded() {
 
 function initMap() {
   mapInitialized = true;
+
+  // Define overlay class now that google.maps is available
+  LiveDotOverlay = class extends google.maps.OverlayView {
+    constructor() {
+      super();
+      this._latLng = null;
+      this._div    = null;
+    }
+    onAdd() {
+      const d = document.createElement('div');
+      d.style.cssText = 'position:absolute;width:18px;height:18px;margin:-9px 0 0 -9px;z-index:200;';
+      d.innerHTML = '<div class="live-dot-inner"></div><div class="live-dot-pulse"></div>';
+      this._div = d;
+      this.getPanes().overlayMouseTarget.appendChild(d);
+    }
+    draw() {
+      if (!this._latLng || !this._div) return;
+      const pt = this.getProjection().fromLatLngToDivPixel(this._latLng);
+      if (pt) {
+        this._div.style.left = pt.x + 'px';
+        this._div.style.top  = pt.y + 'px';
+        this._div.style.display = 'block';
+      }
+    }
+    moveTo(latLng) {
+      this._latLng = latLng;
+      if (this.getMap()) this.draw();
+    }
+    onRemove() {
+      if (this._div) { this._div.parentNode?.removeChild(this._div); this._div = null; }
+    }
+  };
+
   const style = getTheme() === 'dark' ? darkMapStyle : lightMapStyle;
 
   map = new google.maps.Map(document.getElementById('map'), {
@@ -1981,6 +2370,30 @@ function initMap() {
 
   map.addListener('idle', onMapIdle);
 
+  // Places Autocomplete — location search on the map
+  try {
+    const searchInput = document.getElementById('mapSearchInput');
+    const autocomplete = new google.maps.places.Autocomplete(searchInput, {
+      fields: ['geometry', 'name'],
+      types: ['geocode', 'establishment']
+    });
+    autocomplete.addListener('place_changed', () => {
+      const place = autocomplete.getPlace();
+      if (place.geometry && place.geometry.location) {
+        map.panTo(place.geometry.location);
+        if (place.geometry.viewport) {
+          map.fitBounds(place.geometry.viewport);
+        } else {
+          map.setZoom(15);
+        }
+        searchInput.blur();
+      }
+    });
+  } catch(e) { console.warn('Autocomplete unavailable'); }
+
+  startLiveLocation();
+
+  // Initial center on user position
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       pos => { map.setCenter({lat:pos.coords.latitude,lng:pos.coords.longitude}); map.setZoom(15); },
