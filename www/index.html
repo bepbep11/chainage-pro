@@ -1,0 +1,2896 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Chaînage Pro — Pharmacies Maroc</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   THEME SYSTEM — CSS Variables for Dark & Light
+   ============================================================ */
+:root {
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --green: #10b981;
+  --green-dim: rgba(16,185,129,0.12);
+  --green-glow: rgba(16,185,129,0.35);
+  --red: #ef4444;
+  --red-dim: rgba(239,68,68,0.12);
+  --amber: #f59e0b;
+  --amber-dim: rgba(245,158,11,0.12);
+  --blue: #3b82f6;
+  --blue-dim: rgba(59,130,246,0.12);
+  --radius: 14px;
+  --radius-sm: 10px;
+  --radius-xs: 7px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.12);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.18);
+  --transition: 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* DARK THEME */
+[data-theme="dark"] {
+  --bg-base: #06090f;
+  --bg-primary: #0a0f1a;
+  --bg-secondary: #111827;
+  --bg-card: #1a2236;
+  --bg-elevated: #1f2b3f;
+  --bg-input: #151d2e;
+  --bg-overlay: rgba(6,9,15,0.88);
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-inverse: #0a0f1a;
+  --border: rgba(255,255,255,0.06);
+  --border-hover: rgba(255,255,255,0.12);
+  --border-focus: var(--green);
+  --scrollbar-thumb: #334155;
+  --map-bg: #0f172a;
+  --infowindow-bg: #1a2236;
+  --infowindow-text: #f1f5f9;
+  --infowindow-muted: #94a3b8;
+}
+
+/* LIGHT THEME */
+[data-theme="light"] {
+  --bg-base: #f0f2f5;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fb;
+  --bg-card: #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-input: #f0f2f5;
+  --bg-overlay: rgba(255,255,255,0.92);
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-muted: #9ca3af;
+  --text-inverse: #ffffff;
+  --border: rgba(0,0,0,0.08);
+  --border-hover: rgba(0,0,0,0.15);
+  --border-focus: var(--green);
+  --scrollbar-thumb: #cbd5e1;
+  --map-bg: #e8edf3;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.1);
+  --infowindow-bg: #ffffff;
+  --infowindow-text: #111827;
+  --infowindow-muted: #6b7280;
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg-base);
+  color: var(--text-primary);
+  height: 100vh;
+  overflow: hidden;
+  transition: background var(--transition), color var(--transition);
+}
+
+input, button, select, textarea { font-family: inherit; }
+
+/* iOS Safari: prevent auto-zoom on input focus (requires font-size ≥ 16px) */
+@supports (-webkit-touch-callout: none) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  select, textarea { font-size: 16px !important; }
+}
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+
+/* ============================================================
+   PAGE / VIEW SYSTEM
+   ============================================================ */
+.page {
+  position: fixed;
+  inset: 0;
+  display: none;
+  z-index: 1;
+}
+.page.active {
+  display: flex;
+}
+
+/* ============================================================
+   AUTH PAGES (Login / Register)
+   ============================================================ */
+.auth-page {
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-base);
+  overflow: auto;
+}
+
+.auth-backdrop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.auth-backdrop .orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.15;
+  animation: orb-float 20s ease-in-out infinite alternate;
+}
+
+[data-theme="light"] .auth-backdrop .orb { opacity: 0.08; }
+
+.auth-backdrop .orb:nth-child(1) {
+  width: 500px; height: 500px;
+  background: var(--green);
+  top: -10%; left: -5%;
+}
+.auth-backdrop .orb:nth-child(2) {
+  width: 400px; height: 400px;
+  background: var(--blue);
+  bottom: -10%; right: -5%;
+  animation-delay: -7s;
+}
+.auth-backdrop .orb:nth-child(3) {
+  width: 300px; height: 300px;
+  background: var(--amber);
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  animation-delay: -14s;
+}
+
+@keyframes orb-float {
+  0% { transform: translate(0,0) scale(1); }
+  33% { transform: translate(30px,-40px) scale(1.1); }
+  66% { transform: translate(-20px,30px) scale(0.95); }
+  100% { transform: translate(10px,-10px) scale(1.05); }
+}
+
+.auth-card {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 440px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 44px 40px;
+  box-shadow: var(--shadow-lg);
+  animation: auth-enter 0.5s ease-out;
+}
+
+@keyframes auth-enter {
+  from { opacity:0; transform: translateY(20px) scale(0.97); }
+  to { opacity:1; transform: translateY(0) scale(1); }
+}
+
+.auth-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.auth-logo-icon {
+  width: 44px; height: 44px;
+  background: linear-gradient(135deg, var(--green), #059669);
+  border-radius: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  box-shadow: 0 4px 20px var(--green-glow);
+}
+
+.auth-logo h2 {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.auth-logo h2 em {
+  font-style: normal;
+  background: linear-gradient(135deg, var(--green), #34d399);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.auth-title {
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  letter-spacing: -0.5px;
+}
+
+.auth-subtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 28px;
+}
+
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 7px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 13px 16px;
+  background: var(--bg-input);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+  transition: all var(--transition);
+}
+
+.form-input:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px var(--green-dim);
+}
+
+.form-input::placeholder { color: var(--text-muted); }
+
+.form-error {
+  font-size: 12px;
+  color: var(--red);
+  margin-top: 6px;
+  display: none;
+}
+
+.form-error.visible { display: block; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 24px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  text-decoration: none;
+}
+
+.btn-block { width: 100%; }
+
+.btn-green {
+  background: linear-gradient(135deg, var(--green), #059669);
+  color: white;
+  box-shadow: 0 4px 16px var(--green-glow);
+}
+.btn-green:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px var(--green-glow);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1.5px solid var(--border);
+}
+.btn-outline:hover {
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-muted);
+  padding: 8px 12px;
+  font-size: 13px;
+}
+.btn-ghost:hover { color: var(--text-primary); }
+
+.auth-footer {
+  text-align: center;
+  margin-top: 24px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.auth-footer a {
+  color: var(--green);
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.auth-footer a:hover { text-decoration: underline; }
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 22px 0;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* Theme toggle (floating) */
+.theme-toggle-float {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  z-index: 50;
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  transition: all var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+.theme-toggle-float:hover {
+  border-color: var(--border-hover);
+  transform: scale(1.08);
+}
+
+/* ============================================================
+   PRICING PAGE
+   ============================================================ */
+.pricing-page {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-base);
+  overflow: auto;
+  padding: 40px 20px;
+}
+
+.pricing-header {
+  text-align: center;
+  margin-bottom: 48px;
+  max-width: 600px;
+  animation: auth-enter 0.5s ease-out;
+}
+
+.pricing-header h1 {
+  font-size: 36px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  margin-bottom: 12px;
+}
+
+.pricing-header h1 em {
+  font-style: normal;
+  background: linear-gradient(135deg, var(--green), #34d399);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.pricing-header p {
+  font-size: 16px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  max-width: 960px;
+  width: 100%;
+  animation: auth-enter 0.6s ease-out 0.1s both;
+}
+
+@media (max-width: 800px) {
+  .pricing-grid { grid-template-columns: 1fr; max-width: 400px; }
+}
+
+.price-card {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: 18px;
+  padding: 32px 28px;
+  text-align: center;
+  position: relative;
+  transition: all var(--transition);
+}
+
+.price-card:hover {
+  border-color: var(--border-hover);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.price-card.featured {
+  border-color: var(--green);
+  box-shadow: 0 0 0 1px var(--green), 0 8px 32px var(--green-glow);
+}
+
+.price-card.featured::before {
+  content: 'POPULAIRE';
+  position: absolute;
+  top: -12px; left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, var(--green), #059669);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  padding: 4px 16px;
+  border-radius: 20px;
+}
+
+.price-card .plan-name {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.price-card .plan-price {
+  font-size: 48px;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  letter-spacing: -2px;
+  margin-bottom: 4px;
+}
+
+.price-card .plan-price sup {
+  font-size: 20px;
+  vertical-align: super;
+  color: var(--text-muted);
+}
+
+.price-card .plan-period {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+}
+
+.price-card .plan-features {
+  list-style: none;
+  text-align: left;
+  margin-bottom: 28px;
+}
+
+.price-card .plan-features li {
+  font-size: 13px;
+  color: var(--text-secondary);
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.price-card .plan-features li:last-child { border: none; }
+
+.price-card .plan-features .check {
+  color: var(--green);
+  font-weight: 700;
+}
+
+.price-card .plan-features .x {
+  color: var(--text-muted);
+}
+
+.pricing-back {
+  margin-top: 32px;
+  animation: auth-enter 0.6s ease-out 0.2s both;
+}
+
+/* ============================================================
+   PAYMENT SUCCESS
+   ============================================================ */
+.success-card {
+  text-align: center;
+  max-width: 440px;
+  animation: auth-enter 0.5s ease-out;
+}
+
+.success-icon {
+  width: 80px; height: 80px;
+  background: var(--green-dim);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  margin: 0 auto 20px;
+  animation: success-pop 0.4s ease-out 0.2s both;
+}
+
+@keyframes success-pop {
+  0% { transform: scale(0); }
+  60% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+/* ============================================================
+   MAIN APP (Map + Sidebar)
+   ============================================================ */
+.app-page {
+  background: var(--bg-base);
+}
+
+/* Sidebar */
+.sidebar {
+  width: 400px;
+  min-width: 400px;
+  height: 100vh;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+  overflow: hidden;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.sidebar-header {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: border-color var(--transition);
+}
+
+.sidebar-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.s-logo {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--green), #059669);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  box-shadow: 0 3px 12px var(--green-glow);
+}
+
+.s-logo-text h1 {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, var(--green), #34d399);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.s-logo-text span {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-muted);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.header-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.header-btn {
+  width: 34px; height: 34px;
+  border-radius: 9px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 15px;
+  transition: all var(--transition);
+  color: var(--text-muted);
+}
+.header-btn:hover {
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+}
+
+/* User pill */
+.user-pill {
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  transition: border-color var(--transition);
+}
+
+.user-avatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--green-dim), var(--blue-dim));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--green);
+  flex-shrink: 0;
+}
+
+.user-info { flex: 1; min-width: 0; }
+.user-name { font-weight: 600; font-size: 13px; }
+.user-plan {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--green);
+  background: var(--green-dim);
+  padding: 1px 7px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-top: 1px;
+}
+
+.user-logout {
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: inherit;
+  transition: color var(--transition);
+}
+.user-logout:hover { color: var(--red); }
+
+/* Scan indicator */
+.scan-indicator {
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  background: var(--green-dim);
+  background-size: 200%;
+  transition: all 0.3s;
+}
+
+.scan-indicator.scanning {
+  color: var(--green);
+}
+
+.scan-dot {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: var(--green);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.scan-dot::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 2px solid var(--green);
+  opacity: 0;
+}
+
+.scanning .scan-dot::after {
+  animation: pulse-ring 1.2s ease-out infinite;
+}
+
+@keyframes pulse-ring {
+  0% { transform:scale(0.8); opacity:0.6; }
+  100% { transform:scale(2); opacity:0; }
+}
+
+.scan-text { flex: 1; }
+
+.scan-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--green);
+  background: var(--bg-card);
+  padding: 2px 9px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+/* Auto scan row */
+.auto-scan-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 20px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.toggle-switch {
+  position: relative;
+  width: 38px; height: 20px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.toggle-switch input { display: none; }
+
+.toggle-track {
+  position: absolute; inset: 0;
+  background: var(--bg-input);
+  border-radius: 10px;
+  transition: 0.3s;
+  border: 1px solid var(--border);
+}
+
+.toggle-switch input:checked + .toggle-track {
+  background: rgba(16,185,129,0.25);
+  border-color: var(--green);
+}
+
+.toggle-thumb {
+  position: absolute;
+  left: 2px; top: 2px;
+  width: 16px; height: 16px;
+  background: var(--text-muted);
+  border-radius: 50%;
+  transition: 0.3s;
+  pointer-events: none;
+}
+
+.toggle-switch input:checked ~ .toggle-thumb {
+  transform: translateX(18px);
+  background: var(--green);
+}
+
+.btn-scan-sm {
+  margin-left: auto;
+  background: var(--green-dim);
+  color: var(--green);
+  border: 1px solid rgba(16,185,129,0.2);
+  border-radius: 7px;
+  padding: 4px 10px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-scan-sm:hover { background: rgba(16,185,129,0.2); }
+
+/* Search */
+.search-row {
+  padding: 8px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.search-input {
+  width: 100%;
+  padding: 9px 14px;
+  background: var(--bg-input);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 13px;
+  outline: none;
+  transition: all var(--transition);
+}
+
+.search-input:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px var(--green-dim);
+}
+
+.search-input::placeholder { color: var(--text-muted); }
+
+/* Stats */
+.stats-bar {
+  display: flex;
+  gap: 6px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.stat-chip {
+  flex: 1;
+  padding: 9px 8px;
+  background: var(--bg-card);
+  border-radius: 9px;
+  text-align: center;
+  border: 1px solid var(--border);
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  line-height: 1.2;
+}
+
+.stat-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.stat-chip.green .stat-value { color: var(--green); }
+.stat-chip.red .stat-value { color: var(--red); }
+.stat-chip.amber .stat-value { color: var(--amber); }
+
+/* List header */
+.list-header {
+  padding: 12px 20px 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.list-header h3 {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+}
+
+.filter-pills { display: flex; gap: 4px; }
+
+.filter-pill {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  padding: 3px 7px;
+  border-radius: 5px;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  transition: all 0.2s;
+}
+
+.filter-pill.active {
+  border-color: var(--green);
+  color: var(--green);
+  background: var(--green-dim);
+}
+
+/* Pharmacy list */
+.pharmacy-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 20px 20px;
+}
+
+.pharmacy-card {
+  padding: 11px 12px;
+  background: var(--bg-card);
+  border-radius: 9px;
+  margin-bottom: 5px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.pharmacy-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+}
+
+.pharmacy-card.valid::before { background: var(--green); }
+.pharmacy-card.conflict::before { background: var(--red); }
+
+.pharmacy-card:hover {
+  border-color: var(--border-hover);
+  transform: translateX(2px);
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 3px;
+}
+
+.p-name {
+  font-size: 13px;
+  font-weight: 600;
+  padding-left: 9px;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.p-badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.p-badge.valid { background: var(--green-dim); color: var(--green); }
+.p-badge.conflict { background: var(--red-dim); color: var(--red); }
+
+.p-address {
+  font-size: 11px;
+  color: var(--text-muted);
+  padding-left: 9px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.p-meta {
+  display: flex;
+  gap: 10px;
+  padding-left: 9px;
+  margin-top: 3px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+.p-meta span { color: var(--text-muted); }
+
+/* Config panel */
+.config-panel {
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-primary);
+  transition: background var(--transition);
+}
+
+.config-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 7px;
+}
+
+.config-row:last-child { margin-bottom: 0; }
+.config-row label { font-size: 12px; color: var(--text-secondary); }
+.config-row input[type="range"] { width: 120px; accent-color: var(--green); }
+
+.range-val {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--green);
+  min-width: 44px;
+  text-align: right;
+}
+
+/* Map */
+.map-container { flex: 1; position: relative; }
+#map { width: 100%; height: 100%; }
+
+.map-overlay {
+  position: absolute;
+  top: 14px; right: 14px;
+  background: var(--bg-overlay);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 12px 16px;
+  z-index: 5;
+  min-width: 190px;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.map-overlay h4 {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 5px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.legend-item:last-child { margin-bottom: 0; }
+
+.legend-dot {
+  width: 11px; height: 11px;
+  border-radius: 50%;
+  border: 2px solid;
+  flex-shrink: 0;
+}
+
+.legend-dot.green { background: var(--green-dim); border-color: var(--green); }
+.legend-dot.red { background: var(--red-dim); border-color: var(--red); }
+.legend-dot.amber { background: var(--amber-dim); border-color: var(--amber); }
+
+.map-scan-bar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  z-index: 6;
+  overflow: hidden;
+}
+
+.map-scan-bar.active::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -40%;
+  width: 40%; height: 100%;
+  background: linear-gradient(90deg, transparent, var(--green), transparent);
+  animation: scan-slide 1.2s ease-in-out infinite;
+}
+
+@keyframes scan-slide {
+  0% { left: -40%; }
+  100% { left: 100%; }
+}
+
+.move-hint {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-overlay);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 9px 18px;
+  z-index: 5;
+  font-size: 12px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: opacity 0.5s;
+  white-space: nowrap;
+}
+
+.move-hint .hi { animation: bob 2s ease-in-out infinite; }
+@keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
+
+/* Map location search overlay */
+.map-search {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  width: 320px;
+}
+
+.map-search-input {
+  width: 100%;
+  padding: 11px 16px;
+  background: var(--bg-overlay);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  outline: none;
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition);
+}
+
+.map-search-input:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px var(--green-dim), var(--shadow-md);
+}
+
+.map-search-input::placeholder { color: var(--text-muted); }
+
+/* Live location dot */
+.live-dot-inner {
+  position: absolute;
+  width: 18px; height: 18px;
+  background: #3b82f6;
+  border: 3px solid white;
+  border-radius: 50%;
+  box-shadow: 0 2px 10px rgba(59,130,246,0.7);
+  z-index: 2;
+}
+
+.live-dot-pulse {
+  position: absolute;
+  top: -16px; left: -16px;
+  width: 50px; height: 50px;
+  background: rgba(59,130,246,0.22);
+  border-radius: 50%;
+  animation: live-pulse 2s ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes live-pulse {
+  0%   { transform: scale(0.3); opacity: 1; }
+  100% { transform: scale(1.3); opacity: 0; }
+}
+
+/* Add custom point button */
+.map-add-point-btn {
+  position: absolute;
+  top: 68px;
+  left: 14px;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  background: var(--bg-overlay);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+
+.map-add-point-btn:hover {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.map-add-point-btn.active {
+  background: var(--red-dim);
+  border-color: var(--red);
+  color: var(--red);
+  box-shadow: 0 0 0 3px var(--red-dim), var(--shadow-md);
+}
+
+.add-mode-banner {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 7;
+  background: rgba(239,68,68,0.9);
+  color: white;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 16px;
+  letter-spacing: 0.3px;
+  display: none;
+}
+
+.add-mode-banner.visible { display: block; }
+
+@media (max-width: 640px) {
+  .map-add-point-btn {
+    top: 60px;
+    padding: 8px 11px;
+    font-size: 12px;
+  }
+  .map-add-point-btn .btn-add-label { display: none; }
+}
+
+/* Floating scan button on the map */
+.map-scan-fab {
+  position: absolute;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 22px;
+  background: linear-gradient(135deg, var(--green), #059669);
+  border: none;
+  border-radius: 50px;
+  color: white;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 20px var(--green-glow), 0 2px 8px rgba(0,0,0,0.25);
+  transition: all 0.2s cubic-bezier(0.34,1.3,0.64,1);
+  white-space: nowrap;
+}
+
+.map-scan-fab:hover {
+  transform: translateX(-50%) translateY(-2px) scale(1.04);
+  box-shadow: 0 8px 28px var(--green-glow), 0 3px 12px rgba(0,0,0,0.3);
+}
+
+.map-scan-fab:active {
+  transform: translateX(-50%) scale(0.96);
+}
+
+.map-scan-fab.scanning-fab {
+  background: linear-gradient(135deg, #0d9488, #0f766e);
+  pointer-events: none;
+}
+
+.fab-icon {
+  font-size: 18px;
+  display: inline-block;
+  transition: transform 0.3s;
+}
+
+.map-scan-fab.scanning-fab .fab-icon {
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 640px) {
+  .map-scan-fab {
+    bottom: 126px;
+    padding: 11px 18px;
+    font-size: 13px;
+  }
+}
+
+/* Map type selector */
+.map-type-bar {
+  position: absolute;
+  bottom: 60px;
+  right: 14px;
+  z-index: 5;
+  display: flex;
+  gap: 5px;
+}
+
+.map-type-btn {
+  padding: 7px 11px;
+  background: var(--bg-overlay);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  box-shadow: var(--shadow-sm);
+  white-space: nowrap;
+}
+
+.map-type-btn:hover {
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+}
+
+.map-type-btn.active {
+  background: var(--green-dim);
+  border-color: var(--green);
+  color: var(--green);
+}
+
+/* ============================================================
+   DRAWER HANDLE (hidden on desktop, shown on mobile)
+   ============================================================ */
+.drawer-handle {
+  display: none;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 0 2px;
+  cursor: pointer;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.drawer-knob {
+  width: 40px;
+  height: 4px;
+  background: var(--border-hover);
+  border-radius: 2px;
+  transition: background var(--transition);
+}
+
+.drawer-handle:hover .drawer-knob { background: var(--text-muted); }
+
+/* ============================================================
+   PRICING responsive
+   ============================================================ */
+@media (max-width: 800px) {
+  .pricing-grid { grid-template-columns: 1fr; max-width: 400px; }
+}
+
+/* ============================================================
+   TABLET  641 – 900px
+   ============================================================ */
+@media (min-width: 641px) and (max-width: 900px) {
+  .app-page { flex-direction: column; }
+  .sidebar {
+    width: 100%; min-width: unset;
+    height: auto; max-height: 38vh;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    overflow-y: auto;
+  }
+  .map-container { flex: 1; min-height: 0; }
+  .map-search { width: calc(100% - 28px); max-width: 380px; }
+  .map-type-bar { flex-wrap: wrap; max-width: 175px; justify-content: flex-end; }
+}
+
+/* ============================================================
+   MOBILE  ≤ 640px  —  bottom drawer
+   ============================================================ */
+@media (max-width: 640px) {
+
+  /* auth / pricing pages */
+  .auth-card { padding: 32px 22px; margin: 16px; }
+  .pricing-header h1 { font-size: 26px; }
+
+  /* App layout: map full-screen, sidebar is a bottom sheet */
+  .app-page { position: relative; height: 100dvh; height: 100vh; }
+
+  .map-container {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+  }
+
+  /* Bottom drawer */
+  .sidebar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    width: 100%;
+    min-width: unset;
+    height: 80dvh;
+    height: 80vh;
+    max-height: 80vh;
+    border-right: none;
+    border-top: 1px solid var(--border);
+    border-radius: 22px 22px 0 0;
+    z-index: 200;
+    transform: translateY(calc(100% - 116px));
+    transition: transform 0.38s cubic-bezier(0.34, 1.15, 0.64, 1);
+    box-shadow: 0 -8px 40px rgba(0,0,0,0.28);
+    overflow: hidden;
+  }
+
+  .sidebar.drawer-open {
+    transform: translateY(0);
+    overflow-y: auto;
+  }
+
+  /* Show handle on mobile */
+  .drawer-handle { display: flex !important; }
+
+  /* Compact spacing on mobile */
+  .sidebar-header { padding: 12px 16px; }
+  .header-btn { width: 30px; height: 30px; font-size: 13px; }
+  .s-logo { width: 30px; height: 30px; font-size: 14px; }
+  .s-logo-text h1 { font-size: 15px; }
+
+  .user-pill { padding: 7px 16px; }
+  .user-avatar { width: 26px; height: 26px; font-size: 11px; }
+  .user-name { font-size: 12px; }
+
+  .scan-indicator { padding: 8px 16px; font-size: 12px; }
+  .auto-scan-row { padding: 6px 16px; font-size: 11px; }
+  .stats-bar { padding: 8px 14px; gap: 5px; }
+  .stat-value { font-size: 17px; }
+  .stat-label { font-size: 8px; }
+
+  .list-header { padding: 8px 14px 4px; }
+  .search-row { padding: 5px 14px; }
+  .pharmacy-list { padding: 0 14px 20px; }
+  .pharmacy-card { padding: 9px 10px; }
+  .p-name { font-size: 12px; }
+  .p-address { font-size: 10px; }
+
+  .config-panel { padding: 8px 16px; }
+  .config-row { margin-bottom: 6px; }
+  .config-row label { font-size: 11px; }
+  .range-val { font-size: 11px; min-width: 36px; }
+
+  /* Map overlays */
+  .map-overlay { display: none; } /* legend hidden — space is limited */
+
+  .map-search {
+    left: 14px;
+    transform: none;
+    width: calc(100% - 80px);
+    max-width: unset;
+    top: 10px;
+  }
+
+  .map-search-input {
+    font-size: 13px;
+    padding: 9px 12px;
+  }
+
+  .map-type-bar {
+    bottom: 126px;
+    right: 8px;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .map-type-btn {
+    font-size: 10px;
+    padding: 5px 8px;
+  }
+
+  .move-hint {
+    bottom: 126px;
+    left: 14px;
+    transform: none;
+    font-size: 11px;
+    padding: 7px 12px;
+  }
+
+  /* Theme toggle float */
+  .theme-toggle-float {
+    top: 10px;
+    right: 10px;
+    width: 36px; height: 36px;
+    font-size: 15px;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== THEME TOGGLE (global) ==================== -->
+<button class="theme-toggle-float" id="themeToggle" onclick="toggleTheme()" title="Changer le thème">🌙</button>
+
+<!-- ==================== PAGE: LOGIN ==================== -->
+<div class="page auth-page active" id="pageLogin">
+  <div class="auth-backdrop">
+    <div class="orb"></div>
+    <div class="orb"></div>
+    <div class="orb"></div>
+  </div>
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">⚕️</div>
+      <h2>Chaînage <em>Pro</em></h2>
+    </div>
+    <div class="auth-title">Connexion</div>
+    <div class="auth-subtitle">Accédez à votre tableau de bord de chaînage</div>
+
+    <div class="form-group">
+      <label>Email</label>
+      <input class="form-input" type="email" id="loginEmail" placeholder="votre@email.com" />
+    </div>
+    <div class="form-group">
+      <label>Mot de passe</label>
+      <input class="form-input" type="password" id="loginPassword" placeholder="••••••••" />
+    </div>
+    <div class="form-error" id="loginError">Email ou mot de passe incorrect</div>
+
+    <button class="btn btn-green btn-block" onclick="handleLogin()">Se connecter</button>
+
+    <div class="auth-divider">ou</div>
+
+    <button class="btn btn-outline btn-block" onclick="handleDemoLogin()">
+      🚀 Accès démonstration
+    </button>
+
+    <div class="auth-footer">
+      Pas encore de compte ? <a onclick="showPage('pageRegister')">Créer un compte</a>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== PAGE: REGISTER ==================== -->
+<div class="page auth-page" id="pageRegister">
+  <div class="auth-backdrop">
+    <div class="orb"></div>
+    <div class="orb"></div>
+    <div class="orb"></div>
+  </div>
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">⚕️</div>
+      <h2>Chaînage <em>Pro</em></h2>
+    </div>
+    <div class="auth-title">Créer un compte</div>
+    <div class="auth-subtitle">Commencez votre essai gratuit de 14 jours</div>
+
+    <div class="form-group">
+      <label>Nom complet</label>
+      <input class="form-input" type="text" id="regName" placeholder="Mohammed Alami" />
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input class="form-input" type="email" id="regEmail" placeholder="votre@email.com" />
+    </div>
+    <div class="form-group">
+      <label>Mot de passe</label>
+      <input class="form-input" type="password" id="regPassword" placeholder="Minimum 8 caractères" />
+    </div>
+    <div class="form-group">
+      <label>Ville</label>
+      <input class="form-input" type="text" id="regCity" placeholder="Casablanca" />
+    </div>
+    <div class="form-error" id="regError"></div>
+
+    <button class="btn btn-green btn-block" onclick="handleRegister()">Créer mon compte</button>
+
+    <div class="auth-footer">
+      Déjà inscrit ? <a onclick="showPage('pageLogin')">Se connecter</a>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== PAGE: PRICING ==================== -->
+<div class="page pricing-page" id="pagePricing">
+  <div class="pricing-header">
+    <h1>Choisissez votre <em>plan</em></h1>
+    <p>Analysez le chaînage réglementaire des pharmacies au Maroc avec des données Google Maps en temps réel.</p>
+  </div>
+
+  <div class="pricing-grid">
+    <!-- FREE -->
+    <div class="price-card">
+      <div class="plan-name">Gratuit</div>
+      <div class="plan-price">0<sup>MAD</sup></div>
+      <div class="plan-period">pour toujours</div>
+      <ul class="plan-features">
+        <li><span class="check">✓</span> 5 scans / jour</li>
+        <li><span class="check">✓</span> Vue carte basique</li>
+        <li><span class="check">✓</span> Analyse de chaînage</li>
+        <li><span class="x">✗</span> Export PDF</li>
+        <li><span class="x">✗</span> Historique</li>
+      </ul>
+      <button class="btn btn-outline btn-block" onclick="selectPlan('free')">Plan actuel</button>
+    </div>
+
+    <!-- PRO -->
+    <div class="price-card featured">
+      <div class="plan-name">Pro</div>
+      <div class="plan-price">199<sup>MAD</sup></div>
+      <div class="plan-period">par mois</div>
+      <ul class="plan-features">
+        <li><span class="check">✓</span> Scans illimités</li>
+        <li><span class="check">✓</span> Scan auto sur déplacement</li>
+        <li><span class="check">✓</span> Analyse de chaînage avancée</li>
+        <li><span class="check">✓</span> Export PDF & Excel</li>
+        <li><span class="check">✓</span> Historique 6 mois</li>
+      </ul>
+      <button class="btn btn-green btn-block" onclick="selectPlan('pro')">Choisir Pro</button>
+    </div>
+
+    <!-- ENTERPRISE -->
+    <div class="price-card">
+      <div class="plan-name">Entreprise</div>
+      <div class="plan-price">499<sup>MAD</sup></div>
+      <div class="plan-period">par mois</div>
+      <ul class="plan-features">
+        <li><span class="check">✓</span> Tout du plan Pro</li>
+        <li><span class="check">✓</span> API accès direct</li>
+        <li><span class="check">✓</span> Multi-utilisateurs (10)</li>
+        <li><span class="check">✓</span> Support prioritaire</li>
+        <li><span class="check">✓</span> Historique illimité</li>
+      </ul>
+      <button class="btn btn-outline btn-block" onclick="selectPlan('enterprise')">Contacter</button>
+    </div>
+  </div>
+
+  <div class="pricing-back">
+    <button class="btn btn-ghost" onclick="showPage('pageApp')">← Retour à l'application</button>
+  </div>
+</div>
+
+<!-- ==================== PAGE: STRIPE CHECKOUT (simulated) ==================== -->
+<div class="page auth-page" id="pageCheckout">
+  <div class="auth-backdrop">
+    <div class="orb"></div><div class="orb"></div><div class="orb"></div>
+  </div>
+  <div class="auth-card" style="max-width:460px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;">
+      <div style="font-size:28px;">💳</div>
+      <div>
+        <div style="font-size:18px;font-weight:700;">Paiement sécurisé</div>
+        <div style="font-size:12px;color:var(--text-muted);">Powered by Stripe</div>
+      </div>
+      <div style="margin-left:auto;">
+        <svg width="60" height="25" viewBox="0 0 60 25"><rect width="60" height="25" rx="4" fill="#635BFF"/><text x="30" y="17" text-anchor="middle" fill="white" font-size="12" font-weight="700" font-family="sans-serif">stripe</text></svg>
+      </div>
+    </div>
+
+    <div style="background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:20px;">
+      <div style="display:flex;justify-content:space-between;font-size:14px;">
+        <span>Plan <strong id="checkoutPlanName">Pro</strong></span>
+        <span style="font-family:var(--font-mono);font-weight:700;" id="checkoutPlanPrice">199 MAD/mois</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Numéro de carte</label>
+      <input class="form-input" type="text" id="cardNumber" placeholder="4242 4242 4242 4242" maxlength="19" oninput="formatCardNumber(this)" />
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="form-group">
+        <label>Expiration</label>
+        <input class="form-input" type="text" id="cardExpiry" placeholder="MM/AA" maxlength="5" oninput="formatExpiry(this)" />
+      </div>
+      <div class="form-group">
+        <label>CVC</label>
+        <input class="form-input" type="text" id="cardCVC" placeholder="123" maxlength="3" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Nom sur la carte</label>
+      <input class="form-input" type="text" id="cardName" placeholder="MOHAMMED ALAMI" />
+    </div>
+
+    <div class="form-error" id="checkoutError"></div>
+
+    <button class="btn btn-green btn-block" id="payBtn" onclick="handlePayment()">
+      🔒 Payer maintenant
+    </button>
+
+    <div style="text-align:center;margin-top:14px;">
+      <button class="btn btn-ghost" onclick="showPage('pagePricing')">← Retour aux plans</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== PAGE: PAYMENT SUCCESS ==================== -->
+<div class="page auth-page" id="pageSuccess">
+  <div class="auth-backdrop">
+    <div class="orb"></div><div class="orb"></div><div class="orb"></div>
+  </div>
+  <div class="auth-card success-card">
+    <div class="success-icon">✓</div>
+    <div class="auth-title">Paiement réussi !</div>
+    <div class="auth-subtitle" style="margin-bottom:12px;">
+      Votre abonnement <strong id="successPlan">Pro</strong> est maintenant actif.
+    </div>
+    <div style="background:var(--green-dim);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:14px;margin-bottom:24px;">
+      <div style="font-family:var(--font-mono);font-size:12px;color:var(--green);text-align:center;">
+        Réf: TXN-<span id="txnRef">2026021500001</span>
+      </div>
+    </div>
+    <button class="btn btn-green btn-block" onclick="showPage('pageApp')">
+      Accéder à l'application →
+    </button>
+  </div>
+</div>
+
+<!-- ==================== PAGE: MAIN APP ==================== -->
+<div class="page app-page" id="pageApp">
+  <div class="sidebar" id="sidebar">
+    <!-- Mobile drag handle -->
+    <div class="drawer-handle" onclick="toggleDrawer()">
+      <div class="drawer-knob"></div>
+    </div>
+    <div class="sidebar-header">
+      <div class="sidebar-header-left">
+        <div class="s-logo">⚕️</div>
+        <div class="s-logo-text">
+          <h1>Chaînage</h1>
+          <span>Pro</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="header-btn" onclick="toggleTheme()" title="Thème" id="sidebarThemeBtn">🌙</button>
+        <button class="header-btn" onclick="centerOnLiveLocation()" title="Ma position live">📍</button>
+        <button class="header-btn" onclick="showPage('pagePricing')" title="Plans">💎</button>
+      </div>
+    </div>
+
+    <div class="user-pill" id="userPill">
+      <div class="user-avatar" id="userAvatar">M</div>
+      <div class="user-info">
+        <div class="user-name" id="userName">Mohammed</div>
+        <div class="user-plan" id="userPlanBadge">PRO</div>
+      </div>
+      <button class="user-logout" onclick="handleLogout()">Déconnexion</button>
+    </div>
+
+    <div class="scan-indicator" id="scanIndicator">
+      <div class="scan-dot"></div>
+      <div class="scan-text">Déplacez la carte pour scanner</div>
+      <div class="scan-count" id="scanCount" style="display:none;">0</div>
+    </div>
+
+    <div class="auto-scan-row">
+      <label class="toggle-switch">
+        <input type="checkbox" id="autoScanToggle" checked onchange="autoScanEnabled=this.checked">
+        <div class="toggle-track"></div>
+        <div class="toggle-thumb"></div>
+      </label>
+      <span style="flex:1;">Scan auto</span>
+      <button class="btn-scan-sm" onclick="scanCurrentView()">⟳ Scanner</button>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat-chip green">
+        <div class="stat-value" id="statValid">0</div>
+        <div class="stat-label">Pharmacies</div>
+      </div>
+      <div class="stat-chip red">
+        <div class="stat-value" id="statZones">0</div>
+        <div class="stat-label">Zones libres</div>
+      </div>
+      <div class="stat-chip amber">
+        <div class="stat-value" id="statTotal">300m</div>
+        <div class="stat-label">Rayon</div>
+      </div>
+    </div>
+
+    <div class="list-header">
+      <h3>Pharmacies</h3>
+      <div class="filter-pills">
+        <button class="filter-pill active" onclick="setFilter('all',this)">Tous</button>
+      </div>
+    </div>
+
+    <div class="search-row">
+      <input type="text" id="searchInput" class="search-input" placeholder="🔍 Rechercher une pharmacie..." oninput="filterByName(this.value)" />
+    </div>
+
+    <div class="pharmacy-list" id="pharmacyList">
+      <div style="text-align:center;padding:40px 20px;color:var(--text-muted);">
+        <div style="font-size:36px;margin-bottom:10px;">🗺️</div>
+        <p style="font-size:13px;line-height:1.6;">Naviguez sur la carte.<br>Les pharmacies s'affichent <strong style="color:var(--green);">automatiquement</strong>.</p>
+      </div>
+    </div>
+
+    <div class="config-panel">
+      <div class="config-row">
+        <label>Distance min</label>
+        <input type="range" id="distanceRange" min="100" max="500" value="300" step="10" oninput="updateDistance(this.value)" />
+        <div class="range-val" id="distanceValue">300m</div>
+      </div>
+      <div class="config-row">
+        <label>Périmètres</label>
+        <label class="toggle-switch">
+          <input type="checkbox" id="showCircles" checked onchange="toggleCircles()">
+          <div class="toggle-track"></div>
+          <div class="toggle-thumb"></div>
+        </label>
+      </div>
+      <div class="config-row">
+        <label>Effacer</label>
+        <button class="btn-scan-sm" onclick="clearOverlays()" style="margin-left:auto;border-color:rgba(239,68,68,0.25);color:var(--red);background:var(--red-dim);">✕ Zones &amp; Cercles</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="map-container">
+    <div class="add-mode-banner" id="addModeBanner">
+      📌 Mode ajout — Tapez sur la carte pour placer un point &nbsp;·&nbsp;
+      <span style="text-decoration:underline;cursor:pointer;" onclick="toggleAddPointMode()">Annuler</span>
+    </div>
+
+    <div class="map-search">
+      <input id="mapSearchInput" type="text" class="map-search-input"
+             placeholder="🔍 Rechercher une ville, adresse..." autocomplete="off" />
+    </div>
+
+    <button class="map-add-point-btn" id="addPointBtn" onclick="toggleAddPointMode()" title="Ajouter un point personnalisé">
+      📌 <span class="btn-add-label">Ajouter un point</span>
+    </button>
+
+    <div id="map"></div>
+    <div class="map-scan-bar" id="mapScanBar"></div>
+
+    <div class="map-overlay">
+      <h4>Légende</h4>
+      <div class="legend-item">
+        <div class="legend-dot green"></div>
+        Pharmacie (≥ <span id="legendDist">300</span>m)
+      </div>
+      <div class="legend-item">
+        <div style="width:11px;height:11px;background:rgba(249,115,22,0.35);border:2px solid #f97316;flex-shrink:0;border-radius:2px;"></div>
+        Zone libre possible
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot amber"></div>
+        Périmètre
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:rgba(59,130,246,0.25);border-color:#3b82f6;"></div>
+        Votre position
+      </div>
+    </div>
+
+    <div class="map-type-bar">
+      <button class="map-type-btn active" data-type="roadmap" onclick="setMapType('roadmap',this)">🗺 Carte</button>
+      <button class="map-type-btn" data-type="satellite" onclick="setMapType('satellite',this)">🛰 Satellite</button>
+      <button class="map-type-btn" data-type="hybrid" onclick="setMapType('hybrid',this)">🏙 Hybride</button>
+      <button class="map-type-btn" data-type="terrain" onclick="setMapType('terrain',this)">⛰ Relief</button>
+    </div>
+
+    <button class="map-scan-fab" id="mapScanFab" onclick="mapFabScan()">
+      <span class="fab-icon">⟳</span>
+      <span class="fab-label">Scanner cette zone</span>
+    </button>
+
+    <div class="move-hint" id="moveHint">
+      <span class="hi">👆</span>
+      Déplacez et zoomez — scan automatique
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script>
+// ===================== THEME =====================
+function getTheme() {
+  return document.documentElement.getAttribute('data-theme');
+}
+
+function toggleTheme() {
+  const next = getTheme() === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  const icon = next === 'dark' ? '🌙' : '☀️';
+  document.getElementById('themeToggle').textContent = icon;
+  document.getElementById('sidebarThemeBtn').textContent = icon;
+  try { localStorage.setItem('chainage-theme', next); } catch(e) {}
+  // Update map style only when in roadmap mode (satellite/hybrid/terrain don't use custom styles)
+  if (map && map.setOptions && currentMapType === 'roadmap') {
+    map.setOptions({ styles: next === 'dark' ? darkMapStyle : lightMapStyle });
+  }
+}
+
+// Restore saved theme
+try {
+  const saved = localStorage.getItem('chainage-theme');
+  if (saved) {
+    document.documentElement.setAttribute('data-theme', saved);
+    const icon = saved === 'dark' ? '🌙' : '☀️';
+    document.getElementById('themeToggle').textContent = icon;
+  }
+} catch(e) {}
+
+// ===================== MOBILE DRAWER =====================
+function toggleDrawer() {
+  document.getElementById('sidebar')?.classList.toggle('drawer-open');
+}
+
+function closeDrawer() {
+  document.getElementById('sidebar')?.classList.remove('drawer-open');
+}
+
+// ===================== PAGE NAVIGATION =====================
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  // Re-trigger map resize if showing app
+  if (id === 'pageApp' && map) {
+    setTimeout(() => google.maps.event.trigger(map, 'resize'), 100);
+  }
+}
+
+// ===================== AUTH STATE =====================
+let currentUser = null;
+
+function setUser(user) {
+  currentUser = user;
+  try { localStorage.setItem('chainage-user', JSON.stringify(user)); } catch(e) {}
+  updateUserUI();
+}
+
+function loadUser() {
+  try {
+    const saved = localStorage.getItem('chainage-user');
+    if (saved) {
+      currentUser = JSON.parse(saved);
+      updateUserUI();
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+
+function updateUserUI() {
+  if (!currentUser) return;
+  const initials = currentUser.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('userAvatar').textContent = initials;
+  document.getElementById('userName').textContent = currentUser.name;
+  document.getElementById('userPlanBadge').textContent = (currentUser.plan || 'free').toUpperCase();
+}
+
+// ===================== LOGIN =====================
+function handleLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+
+  if (!email || !pass) {
+    errEl.textContent = 'Veuillez remplir tous les champs';
+    errEl.classList.add('visible');
+    return;
+  }
+
+  if (!email.includes('@')) {
+    errEl.textContent = 'Adresse email invalide';
+    errEl.classList.add('visible');
+    return;
+  }
+
+  errEl.classList.remove('visible');
+
+  // Check stored users
+  const users = getStoredUsers();
+  const user = users.find(u => u.email === email);
+  if (user && user.password === pass) {
+    setUser(user);
+    showPage('pageApp');
+    initMapIfNeeded();
+    return;
+  }
+
+  if (user) {
+    errEl.textContent = 'Mot de passe incorrect';
+    errEl.classList.add('visible');
+    return;
+  }
+
+  // Auto-create account on first login
+  const newUser = { name: email.split('@')[0], email, password: pass, plan: 'free', city: '' };
+  saveUser(newUser);
+  setUser(newUser);
+  showPage('pagePricing');
+}
+
+function handleDemoLogin() {
+  setUser({ name: 'Utilisateur Demo', email: 'demo@chainage.ma', plan: 'pro', city: 'Casablanca' });
+  showPage('pageApp');
+  initMapIfNeeded();
+}
+
+// ===================== REGISTER =====================
+function handleRegister() {
+  const name = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const pass = document.getElementById('regPassword').value;
+  const city = document.getElementById('regCity').value.trim();
+  const errEl = document.getElementById('regError');
+
+  if (!name || !email || !pass) {
+    errEl.textContent = 'Veuillez remplir tous les champs obligatoires';
+    errEl.classList.add('visible');
+    return;
+  }
+
+  if (pass.length < 8) {
+    errEl.textContent = 'Le mot de passe doit contenir au moins 8 caractères';
+    errEl.classList.add('visible');
+    return;
+  }
+
+  if (!email.includes('@')) {
+    errEl.textContent = 'Adresse email invalide';
+    errEl.classList.add('visible');
+    return;
+  }
+
+  const users = getStoredUsers();
+  if (users.find(u => u.email === email)) {
+    errEl.textContent = 'Un compte avec cet email existe déjà';
+    errEl.classList.add('visible');
+    return;
+  }
+
+  errEl.classList.remove('visible');
+
+  const user = { name, email, password: pass, plan: 'free', city };
+  saveUser(user);
+  setUser(user);
+  showPage('pagePricing');
+}
+
+// ===================== USER STORAGE =====================
+function getStoredUsers() {
+  try {
+    return JSON.parse(localStorage.getItem('chainage-users') || '[]');
+  } catch(e) { return []; }
+}
+
+function saveUser(user) {
+  const users = getStoredUsers();
+  const idx = users.findIndex(u => u.email === user.email);
+  if (idx >= 0) users[idx] = user;
+  else users.push(user);
+  try { localStorage.setItem('chainage-users', JSON.stringify(users)); } catch(e) {}
+}
+
+function handleLogout() {
+  currentUser = null;
+  try { localStorage.removeItem('chainage-user'); } catch(e) {}
+  showPage('pageLogin');
+}
+
+// ===================== PRICING & STRIPE =====================
+let selectedPlan = 'pro';
+
+function selectPlan(plan) {
+  if (plan === 'free') {
+    if (currentUser) {
+      currentUser.plan = 'free';
+      setUser(currentUser);
+      saveUser(currentUser);
+    }
+    showPage('pageApp');
+    initMapIfNeeded();
+    return;
+  }
+
+  if (plan === 'enterprise') {
+    alert('Contactez-nous à enterprise@chainage.ma pour un devis personnalisé.');
+    return;
+  }
+
+  selectedPlan = plan;
+  const prices = { pro: '199 MAD/mois', enterprise: '499 MAD/mois' };
+  document.getElementById('checkoutPlanName').textContent = plan.charAt(0).toUpperCase() + plan.slice(1);
+  document.getElementById('checkoutPlanPrice').textContent = prices[plan] || '';
+  showPage('pageCheckout');
+}
+
+function formatCardNumber(input) {
+  let v = input.value.replace(/\D/g, '').slice(0, 16);
+  input.value = v.replace(/(\d{4})(?=\d)/g, '$1 ');
+}
+
+function formatExpiry(input) {
+  let v = input.value.replace(/\D/g, '').slice(0, 4);
+  if (v.length >= 2) v = v.slice(0,2) + '/' + v.slice(2);
+  input.value = v;
+}
+
+function handlePayment() {
+  const num = document.getElementById('cardNumber').value.replace(/\s/g, '');
+  const exp = document.getElementById('cardExpiry').value;
+  const cvc = document.getElementById('cardCVC').value;
+  const name = document.getElementById('cardName').value;
+  const errEl = document.getElementById('checkoutError');
+
+  if (num.length < 16 || !exp || cvc.length < 3 || !name) {
+    errEl.textContent = 'Veuillez remplir toutes les informations de paiement';
+    errEl.classList.add('visible');
+    return;
+  }
+
+  errEl.classList.remove('visible');
+
+  // Simulate Stripe processing
+  const payBtn = document.getElementById('payBtn');
+  payBtn.disabled = true;
+  payBtn.innerHTML = '<span style="display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.6s linear infinite;"></span> Traitement...';
+
+  setTimeout(() => {
+    // Success!
+    if (currentUser) {
+      currentUser.plan = selectedPlan;
+      setUser(currentUser);
+      saveUser(currentUser);
+    }
+
+    document.getElementById('successPlan').textContent = selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1);
+    document.getElementById('txnRef').textContent = 'TXN-' + Date.now().toString().slice(-10);
+
+    payBtn.disabled = false;
+    payBtn.innerHTML = '🔒 Payer maintenant';
+
+    // Clear form
+    document.getElementById('cardNumber').value = '';
+    document.getElementById('cardExpiry').value = '';
+    document.getElementById('cardCVC').value = '';
+    document.getElementById('cardName').value = '';
+
+    showPage('pageSuccess');
+  }, 2200);
+}
+
+// ===================== MAP APP STATE =====================
+let MIN_DISTANCE = 300;
+let map, placesService;
+let pharmacyMarkers = [];
+let pharmacyCircles = [];
+let zonesCanvas = null;
+let pharmacies = [];
+let infoWindow;
+let autoScanEnabled = false;
+let currentFilter = 'all';
+let currentMapType = 'roadmap';
+let searchQuery = '';
+let scanDebounceTimer = null;
+let isScanning = false;
+let hintVisible = true;
+let mapInitialized = false;
+let liveDot = null;
+let liveAccuracyCircle = null;
+let watchId = null;
+
+const darkMapStyle = [
+  { elementType:"geometry", stylers:[{color:"#0f172a"}] },
+  { elementType:"labels.text.stroke", stylers:[{color:"#0f172a"}] },
+  { elementType:"labels.text.fill", stylers:[{color:"#64748b"}] },
+  { featureType:"administrative", elementType:"geometry.stroke", stylers:[{color:"#1e293b"}] },
+  { featureType:"road", elementType:"geometry", stylers:[{color:"#1e293b"}] },
+  { featureType:"road", elementType:"geometry.stroke", stylers:[{color:"#0f172a"}] },
+  { featureType:"road.highway", elementType:"geometry", stylers:[{color:"#334155"}] },
+  { featureType:"water", elementType:"geometry", stylers:[{color:"#0c1426"}] },
+  { featureType:"poi.park", elementType:"geometry", stylers:[{color:"#0d2818"}] },
+  { featureType:"poi", elementType:"labels", stylers:[{visibility:"off"}] },
+  { featureType:"transit", stylers:[{visibility:"off"}] },
+];
+
+const lightMapStyle = [
+  { elementType:"geometry", stylers:[{color:"#f5f5f5"}] },
+  { elementType:"labels.text.fill", stylers:[{color:"#616161"}] },
+  { elementType:"labels.text.stroke", stylers:[{color:"#f5f5f5"}] },
+  { featureType:"administrative", elementType:"geometry.stroke", stylers:[{color:"#c9c9c9"}] },
+  { featureType:"road", elementType:"geometry", stylers:[{color:"#ffffff"}] },
+  { featureType:"road.highway", elementType:"geometry", stylers:[{color:"#dadada"}] },
+  { featureType:"water", elementType:"geometry", stylers:[{color:"#c9d7e8"}] },
+  { featureType:"poi.park", elementType:"geometry", stylers:[{color:"#c5e8c5"}] },
+  { featureType:"poi", elementType:"labels", stylers:[{visibility:"off"}] },
+  { featureType:"transit", stylers:[{visibility:"off"}] },
+];
+
+// ===================== MAP FUNCTIONS =====================
+function haversineDistance(lat1,lon1,lat2,lon2) {
+  const R = 6371000;
+  const dLat = (lat2-lat1)*Math.PI/180;
+  const dLon = (lon2-lon1)*Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function analyzeChainage() {
+  pharmacies.forEach((p,i) => {
+    p.minDistance = Infinity;
+    pharmacies.forEach((q,j) => {
+      if (i===j) return;
+      const d = haversineDistance(p.lat,p.lng,q.lat,q.lng);
+      if (d < p.minDistance) p.minDistance = Math.round(d);
+    });
+    p.status = 'valid';
+  });
+  document.getElementById('statValid').textContent = pharmacies.length;
+  document.getElementById('statTotal').textContent = MIN_DISTANCE + 'm';
+}
+
+function clearMap() {
+  pharmacyMarkers.forEach(m=>m.setMap(null));
+  pharmacyCircles.forEach(c=>c.setMap(null));
+  pharmacyMarkers = [];
+  pharmacyCircles = [];
+  if (zonesCanvas) zonesCanvas.style.display = 'none';
+  document.getElementById('statZones').textContent = 0;
+  if (infoWindow) infoWindow.close();
+}
+
+function renderPharmacies() {
+  clearMap();
+  analyzeChainage();
+  const showCirc = document.getElementById('showCircles').checked;
+  // Luminous green — visible on roadmap, satellite, hybrid, terrain
+  const markerFill  = '#34d399';  // bright emerald
+  const markerStroke = '#ffffff'; // white border → pops on any background
+  const circleColor  = '#10b981'; // standard green for perimeters
+
+  pharmacies.forEach((p,idx) => {
+    const marker = new google.maps.Marker({
+      position:{lat:p.lat,lng:p.lng}, map,
+      icon:{
+        path: google.maps.SymbolPath.CIRCLE,
+        fillColor: markerFill, fillOpacity:1,
+        strokeColor: markerStroke, strokeWeight:2.5, scale:10
+      },
+      title: p.name,
+      zIndex: 5
+    });
+
+    marker.addListener('click', () => {
+      infoWindow.setContent(`
+        <div style="font-family:'DM Sans',sans-serif;padding:6px;min-width:220px;background:var(--infowindow-bg);color:var(--infowindow-text);">
+          <div style="font-weight:700;font-size:14px;margin-bottom:3px;">${p.name}</div>
+          <div style="color:var(--infowindow-muted);font-size:11px;margin-bottom:8px;">${p.address}</div>
+          <div style="border-top:1px solid var(--border);padding-top:8px;">
+            <div style="font-size:10px;color:var(--infowindow-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Voisin le plus proche</div>
+            <div style="font-size:14px;font-weight:700;color:#10b981;">${p.minDistance===Infinity?'Aucun voisin':p.minDistance+'m'}</div>
+          </div>
+        </div>
+      `);
+      infoWindow.open(map, marker);
+    });
+
+    pharmacyMarkers.push(marker);
+
+    if (showCirc) {
+      pharmacyCircles.push(new google.maps.Circle({
+        center:{lat:p.lat,lng:p.lng}, radius:MIN_DISTANCE,
+        fillColor: circleColor, fillOpacity: 0.07,
+        strokeColor: circleColor, strokeOpacity: 0.65, strokeWeight: 2,
+        map, clickable:false
+      }));
+    }
+  });
+
+  renderList();
+  updateScanUI(false);
+  computePossibleZones();
+}
+
+function renderList() {
+  const c = document.getElementById('pharmacyList');
+  if (!pharmacies.length) {
+    c.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-muted);"><div style="font-size:36px;margin-bottom:10px;">🗺️</div><p style="font-size:13px;line-height:1.6;">Naviguez sur la carte.<br>Les pharmacies s'affichent <strong style="color:var(--green);">automatiquement</strong>.</p></div>`;
+    return;
+  }
+
+  let list = [...pharmacies];
+  if (searchQuery) list = list.filter(p => p.name.toLowerCase().includes(searchQuery));
+  list.sort((a,b) => (a.minDistance||Infinity) - (b.minDistance||Infinity));
+
+  if (!list.length) { c.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-muted);font-size:13px;">Aucune pharmacie trouvée.</div>`; return; }
+
+  c.innerHTML = list.map(p => {
+    const idx = pharmacies.indexOf(p);
+    return `<div class="pharmacy-card valid" onclick="focusPharmacy(${idx})">
+      <div class="card-top"><div class="p-name">${p.name}</div></div>
+      <div class="p-address">${p.address}</div>
+      <div class="p-meta"><span>Voisin:</span> ${p.minDistance===Infinity?'—':p.minDistance+'m'}</div>
+    </div>`;
+  }).join('');
+}
+
+function filterByName(q) {
+  searchQuery = q.trim().toLowerCase();
+  renderList();
+}
+
+function setFilter(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  renderList();
+}
+
+function focusPharmacy(idx) {
+  const p = pharmacies[idx];
+  const was = autoScanEnabled;
+  autoScanEnabled = false;
+  closeDrawer(); // close mobile drawer to see the map
+  map.panTo({lat:p.lat,lng:p.lng});
+  map.setZoom(17);
+  setTimeout(() => { google.maps.event.trigger(pharmacyMarkers[idx],'click'); autoScanEnabled = was; }, 400);
+}
+
+// ===================== SCAN =====================
+function mapFabScan() {
+  const fab = document.getElementById('mapScanFab');
+  if (!fab || isScanning) return;
+  fab.classList.add('scanning-fab');
+  fab.querySelector('.fab-label').textContent = 'Scan en cours...';
+  closeDrawer();
+  scanCurrentView();
+  // Reset button state when scan finishes (updateScanUI is called after)
+  const reset = setInterval(() => {
+    if (!isScanning) {
+      fab.classList.remove('scanning-fab');
+      fab.querySelector('.fab-label').textContent = 'Scanner cette zone';
+      clearInterval(reset);
+    }
+  }, 400);
+}
+
+function scanCurrentView() {
+  if (!placesService || isScanning) return;
+  isScanning = true;
+  updateScanUI(true);
+  hideHint();
+
+  const center = map.getCenter();
+  const bounds = map.getBounds();
+  let radius = 2000;
+  if (bounds) {
+    const ne = bounds.getNorthEast();
+    radius = haversineDistance(center.lat(),center.lng(),ne.lat(),ne.lng());
+    radius = Math.max(500, Math.min(radius, 50000));
+  }
+
+  let all = [];
+  placesService.nearbySearch({location:center, radius, type:'pharmacy'}, function cb(res, status, pag) {
+    if (status === google.maps.places.PlacesServiceStatus.OK && res) {
+      all = all.concat(res);
+      if (pag && pag.hasNextPage && all.length < 60) setTimeout(() => pag.nextPage(), 300);
+      else finish(all);
+    } else if (all.length) finish(all);
+    else { isScanning=false; pharmacies=[]; renderPharmacies(); }
+  });
+}
+
+function finish(results) {
+  const seen = new Set();
+  pharmacies = results.filter(r => {
+    if (seen.has(r.place_id)) return false;
+    seen.add(r.place_id); return true;
+  }).map(r => ({
+    name:r.name,
+    lat:r.geometry.location.lat(),
+    lng:r.geometry.location.lng(),
+    address:r.vicinity||r.formatted_address||'',
+    placeId:r.place_id
+  }));
+  isScanning = false;
+  renderPharmacies();
+}
+
+function updateScanUI(scanning) {
+  const ind = document.getElementById('scanIndicator');
+  const cnt = document.getElementById('scanCount');
+  const bar = document.getElementById('mapScanBar');
+  if (scanning) {
+    ind.classList.add('scanning');
+    ind.querySelector('.scan-text').textContent = 'Scan en cours...';
+    bar.classList.add('active');
+  } else {
+    ind.classList.remove('scanning');
+    bar.classList.remove('active');
+    if (pharmacies.length) {
+      ind.querySelector('.scan-text').textContent = `${pharmacies.length} pharmacies dans la zone`;
+      cnt.textContent = pharmacies.length;
+      cnt.style.display = 'inline';
+    } else {
+      ind.querySelector('.scan-text').textContent = 'Déplacez la carte pour scanner';
+      cnt.style.display = 'none';
+    }
+  }
+}
+
+function hideHint() {
+  if (!hintVisible) return;
+  const h = document.getElementById('moveHint');
+  h.style.opacity = '0';
+  setTimeout(() => h.style.display = 'none', 500);
+  hintVisible = false;
+}
+
+function onMapIdle() {
+  if (!autoScanEnabled || !placesService) return;
+  clearTimeout(scanDebounceTimer);
+  scanDebounceTimer = setTimeout(scanCurrentView, 700);
+}
+
+// ===================== CONTROLS =====================
+function updateDistance(v) {
+  MIN_DISTANCE = parseInt(v);
+  document.getElementById('distanceValue').textContent = v+'m';
+  document.getElementById('legendDist').textContent = v;
+  document.getElementById('statTotal').textContent = v+'m';
+  if (pharmacies.length) renderPharmacies();
+}
+
+function toggleCircles() { if (pharmacies.length) renderPharmacies(); }
+
+// ===================== CLEAR OVERLAYS =====================
+function clearOverlays() {
+  // Hide zone canvas
+  if (zonesCanvas) {
+    zonesCanvas.style.display = 'none';
+    document.getElementById('statZones').textContent = 0;
+  }
+  // Remove pharmacy markers (green dots)
+  pharmacyMarkers.forEach(m => m.setMap(null));
+  pharmacyMarkers = [];
+  // Remove pharmacy circles
+  pharmacyCircles.forEach(c => c.setMap(null));
+  pharmacyCircles = [];
+  // Reset data & UI
+  pharmacies = [];
+  document.getElementById('statValid').textContent = 0;
+  document.getElementById('statTotal').textContent = MIN_DISTANCE + 'm';
+  renderList();
+  updateScanUI(false);
+  if (infoWindow) infoWindow.close();
+  // Uncheck circle toggle for consistency
+  const chk = document.getElementById('showCircles');
+  if (chk) chk.checked = true; // reset to default ON for next scan
+}
+
+// ===================== MAP TYPE =====================
+function setMapType(type, el) {
+  currentMapType = type;
+  document.querySelectorAll('.map-type-btn').forEach(b => b.classList.remove('active'));
+  if (el) el.classList.add('active');
+  if (!map) return;
+
+  if (type === 'satellite') {
+    map.setMapTypeId(google.maps.MapTypeId.SATELLITE);
+    map.setOptions({ styles: [] });
+  } else if (type === 'hybrid') {
+    map.setMapTypeId(google.maps.MapTypeId.HYBRID);
+    map.setOptions({ styles: [] });
+  } else if (type === 'terrain') {
+    map.setMapTypeId(google.maps.MapTypeId.TERRAIN);
+    map.setOptions({ styles: [] });
+  } else {
+    map.setMapTypeId(google.maps.MapTypeId.ROADMAP);
+    map.setOptions({ styles: getTheme() === 'dark' ? darkMapStyle : lightMapStyle });
+  }
+}
+
+// ===================== POSSIBLE ZONES (canvas blob) =====================
+function computePossibleZones() {
+  if (pharmacies.length < 2) {
+    if (zonesCanvas) zonesCanvas.style.display = 'none';
+    document.getElementById('statZones').textContent = 0;
+    return;
+  }
+
+  const bounds = map.getBounds();
+  if (!bounds) { document.getElementById('statZones').textContent = 0; return; }
+
+  const mapEl = document.getElementById('map');
+  const W = mapEl.offsetWidth;
+  const H = mapEl.offsetHeight;
+  if (!W || !H) return;
+
+  // Create canvas once, reuse afterwards
+  if (!zonesCanvas) {
+    zonesCanvas = document.createElement('canvas');
+    zonesCanvas.style.cssText = 'position:absolute;top:0;left:0;pointer-events:none;z-index:3;';
+    mapEl.parentElement.insertBefore(zonesCanvas, mapEl.nextSibling);
+  }
+
+  zonesCanvas.width  = W;
+  zonesCanvas.height = H;
+  zonesCanvas.style.width  = W + 'px';
+  zonesCanvas.style.height = H + 'px';
+  zonesCanvas.style.display = 'block';
+
+  const ne = bounds.getNorthEast();
+  const sw = bounds.getSouthWest();
+  const latSpan = ne.lat() - sw.lat();
+  const lngSpan = ne.lng() - sw.lng();
+
+  // Sample at reduced resolution for speed, then scale up
+  const STEP = 6; // pixels per sample
+  const cW = Math.ceil(W / STEP);
+  const cH = Math.ceil(H / STEP);
+
+  // Off-screen buffer at low resolution
+  const off = document.createElement('canvas');
+  off.width  = cW;
+  off.height = cH;
+  const offCtx = off.getContext('2d');
+  const img = offCtx.createImageData(cW, cH);
+
+  // Pre-build pharmacy bounding boxes for fast early-reject
+  const latD = (MIN_DISTANCE * 2.8) / 111320;
+
+  let freeArea = 0;
+
+  for (let yi = 0; yi < cH; yi++) {
+    for (let xi = 0; xi < cW; xi++) {
+      // Pixel centre → geographic coords
+      const lat = ne.lat() - ((yi + 0.5) / cH) * latSpan;
+      const lng = sw.lng() + ((xi + 0.5) / cW) * lngSpan;
+
+      // Fast bounding-box pre-filter: skip if no pharmacy is nearby
+      let maybeNear = false;
+      for (const p of pharmacies) {
+        if (Math.abs(lat - p.lat) < latD) { maybeNear = true; break; }
+      }
+      if (!maybeNear) continue;
+
+      // Full haversine pass
+      let minDist = Infinity;
+      let nearAny  = false;
+      for (const p of pharmacies) {
+        const d = haversineDistance(lat, lng, p.lat, p.lng);
+        if (d < minDist) minDist = d;
+        if (d < MIN_DISTANCE * 2.8) nearAny = true;
+      }
+
+      // Zone libre: outside all circles but within neighbourhood
+      if (minDist >= MIN_DISTANCE && nearAny) {
+        const idx = (yi * cW + xi) * 4;
+        // Intensity: peaks around 1.4×MIN_DISTANCE, smooth falloff
+        const t = 1 - Math.abs((minDist / MIN_DISTANCE) - 1.4) / 1.4;
+        const alpha = Math.max(0, Math.min(1, t)) * 0.85;
+        // Orange #f97316 — high contrast on green circles and all map types
+        img.data[idx]   = 249; // R
+        img.data[idx+1] = 115; // G
+        img.data[idx+2] = 22;  // B
+        img.data[idx+3] = Math.round(alpha * 255);
+        freeArea++;
+      }
+    }
+  }
+
+  offCtx.putImageData(img, 0, 0);
+
+  // Scale up with smoothing → blob effect
+  const ctx = zonesCanvas.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(off, 0, 0, W, H);
+
+  // CSS blur for smooth blob edges
+  zonesCanvas.style.filter = 'blur(22px)';
+  zonesCanvas.style.opacity = '0.78';
+
+  const approxKm2 = Math.round(freeArea * (STEP * STEP) * 0.0001);
+  document.getElementById('statZones').textContent = freeArea > 0 ? freeArea : 0;
+}
+
+// ===================== LIVE LOCATION =====================
+// LiveDotOverlay is created lazily inside initMap() after google.maps is loaded
+let LiveDotOverlay = null;
+
+function startLiveLocation() {
+  if (!navigator.geolocation || watchId !== null) return;
+  watchId = navigator.geolocation.watchPosition(
+    pos => {
+      const latLng = new google.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
+      const accuracy = Math.min(pos.coords.accuracy, 800);
+
+      if (!liveDot) {
+        liveDot = new LiveDotOverlay();
+        liveDot.setMap(map);
+      }
+      liveDot.moveTo(latLng);
+
+      if (!liveAccuracyCircle) {
+        liveAccuracyCircle = new google.maps.Circle({
+          center: latLng,
+          radius: accuracy,
+          fillColor: '#3b82f6',
+          fillOpacity: 0.08,
+          strokeColor: '#3b82f6',
+          strokeOpacity: 0.3,
+          strokeWeight: 1,
+          map,
+          clickable: false,
+          zIndex: 1
+        });
+      } else {
+        liveAccuracyCircle.setCenter(latLng);
+        liveAccuracyCircle.setRadius(accuracy);
+      }
+    },
+    err => console.warn('Géolocalisation:', err.message),
+    {enableHighAccuracy: true, maximumAge: 4000, timeout: 15000}
+  );
+}
+
+function centerOnLiveLocation() {
+  if (!map) return;
+  if (liveDot && liveDot._latLng) {
+    map.panTo(liveDot._latLng);
+    map.setZoom(17);
+  } else if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        map.panTo({lat: pos.coords.latitude, lng: pos.coords.longitude});
+        map.setZoom(17);
+      },
+      err => console.warn('Location:', err.message),
+      {enableHighAccuracy: true, timeout: 10000}
+    );
+  }
+}
+
+// ===================== CUSTOM POINTS =====================
+let addPointMode      = false;
+let customPoints      = [];
+let customPointMarkers  = [];
+let customPointCircles  = [];
+
+function loadCustomPoints() {
+  try {
+    customPoints = JSON.parse(localStorage.getItem('chainage-custom-points') || '[]');
+  } catch(e) { customPoints = []; }
+  renderCustomPoints();
+}
+
+function saveCustomPoints() {
+  try { localStorage.setItem('chainage-custom-points', JSON.stringify(customPoints)); } catch(e) {}
+}
+
+function renderCustomPoints() {
+  customPointMarkers.forEach(m => m.setMap(null));
+  customPointCircles.forEach(c => c.setMap(null));
+  customPointMarkers = [];
+  customPointCircles = [];
+
+  customPoints.forEach(pt => {
+    const marker = new google.maps.Marker({
+      position: {lat: pt.lat, lng: pt.lng},
+      map,
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        fillColor: '#ef4444',
+        fillOpacity: 1,
+        strokeColor: '#ffffff',
+        strokeWeight: 2.5,
+        scale: 9
+      },
+      title: pt.name,
+      zIndex: 20
+    });
+
+    const circle = new google.maps.Circle({
+      center: {lat: pt.lat, lng: pt.lng},
+      radius: pt.radius,
+      fillColor: '#ef4444',
+      fillOpacity: 0.07,
+      strokeColor: '#ef4444',
+      strokeOpacity: 0.6,
+      strokeWeight: 2,
+      map,
+      clickable: false,
+      zIndex: 3
+    });
+
+    marker.addListener('click', () => {
+      infoWindow.setContent(`
+        <div style="font-family:'DM Sans',sans-serif;padding:8px;min-width:200px;background:var(--infowindow-bg);color:var(--infowindow-text);">
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px;color:#ef4444;">📌 ${pt.name}</div>
+          <div style="font-size:11px;color:var(--infowindow-muted);margin-bottom:4px;">
+            ${pt.lat.toFixed(5)}, ${pt.lng.toFixed(5)}
+          </div>
+          <div style="font-size:11px;color:var(--infowindow-muted);margin-bottom:10px;">
+            Rayon : ${pt.radius}m
+          </div>
+          <button onclick="deleteCustomPoint('${pt.id}')"
+            style="background:#ef4444;color:#fff;border:none;border-radius:7px;padding:7px 0;font-size:12px;font-weight:700;cursor:pointer;width:100%;">
+            🗑 Supprimer ce point
+          </button>
+        </div>
+      `);
+      infoWindow.open(map, marker);
+    });
+
+    customPointMarkers.push(marker);
+    customPointCircles.push(circle);
+  });
+}
+
+function addCustomPoint(lat, lng) {
+  const name = prompt('Nom du point (ex: Future pharmacie, Projet A…) :', 'Point personnalisé');
+  if (name === null) return; // user cancelled
+  const pt = {
+    id: Date.now().toString(),
+    lat, lng,
+    name: name.trim() || 'Point personnalisé',
+    radius: MIN_DISTANCE
+  };
+  customPoints.push(pt);
+  saveCustomPoints();
+  renderCustomPoints();
+}
+
+function deleteCustomPoint(id) {
+  customPoints = customPoints.filter(p => p.id !== id);
+  saveCustomPoints();
+  renderCustomPoints();
+  if (infoWindow) infoWindow.close();
+}
+
+function toggleAddPointMode() {
+  addPointMode = !addPointMode;
+  const btn    = document.getElementById('addPointBtn');
+  const banner = document.getElementById('addModeBanner');
+  const mapEl  = document.getElementById('map');
+  if (addPointMode) {
+    btn?.classList.add('active');
+    banner?.classList.add('visible');
+    if (mapEl) mapEl.style.cursor = 'crosshair';
+  } else {
+    btn?.classList.remove('active');
+    banner?.classList.remove('visible');
+    if (mapEl) mapEl.style.cursor = '';
+  }
+}
+
+// ===================== INIT MAP =====================
+function initMapIfNeeded() {
+  if (mapInitialized) return;
+  loadGoogleMaps();
+}
+
+function initMap() {
+  mapInitialized = true;
+
+  // Define overlay class now that google.maps is available
+  LiveDotOverlay = class extends google.maps.OverlayView {
+    constructor() {
+      super();
+      this._latLng = null;
+      this._div    = null;
+    }
+    onAdd() {
+      const d = document.createElement('div');
+      d.style.cssText = 'position:absolute;width:18px;height:18px;margin:-9px 0 0 -9px;z-index:200;';
+      d.innerHTML = '<div class="live-dot-inner"></div><div class="live-dot-pulse"></div>';
+      this._div = d;
+      this.getPanes().overlayMouseTarget.appendChild(d);
+    }
+    draw() {
+      if (!this._latLng || !this._div) return;
+      const pt = this.getProjection().fromLatLngToDivPixel(this._latLng);
+      if (pt) {
+        this._div.style.left = pt.x + 'px';
+        this._div.style.top  = pt.y + 'px';
+        this._div.style.display = 'block';
+      }
+    }
+    moveTo(latLng) {
+      this._latLng = latLng;
+      if (this.getMap()) this.draw();
+    }
+    onRemove() {
+      if (this._div) { this._div.parentNode?.removeChild(this._div); this._div = null; }
+    }
+  };
+
+  const style = getTheme() === 'dark' ? darkMapStyle : lightMapStyle;
+
+  map = new google.maps.Map(document.getElementById('map'), {
+    center: {lat:33.5731, lng:-7.5898},
+    zoom: 15,
+    styles: style,
+    disableDefaultUI: true,
+    zoomControl: true,
+    fullscreenControl: true,
+  });
+
+  infoWindow = new google.maps.InfoWindow();
+
+  try { placesService = new google.maps.places.PlacesService(map); }
+  catch(e) { console.warn('Places API unavailable'); }
+
+  map.addListener('idle', onMapIdle);
+  map.addListener('dragstart', closeDrawer);
+  map.addListener('click', e => {
+    if (addPointMode) {
+      addCustomPoint(e.latLng.lat(), e.latLng.lng());
+    } else {
+      closeDrawer();
+    }
+  });
+
+  // Places Autocomplete — location search on the map
+  try {
+    const searchInput = document.getElementById('mapSearchInput');
+    const autocomplete = new google.maps.places.Autocomplete(searchInput, {
+      fields: ['geometry', 'name'],
+      types: ['geocode', 'establishment']
+    });
+    autocomplete.addListener('place_changed', () => {
+      const place = autocomplete.getPlace();
+      if (place.geometry && place.geometry.location) {
+        map.panTo(place.geometry.location);
+        if (place.geometry.viewport) {
+          map.fitBounds(place.geometry.viewport);
+        } else {
+          map.setZoom(15);
+        }
+        searchInput.blur();
+      }
+    });
+  } catch(e) { console.warn('Autocomplete unavailable'); }
+
+  startLiveLocation();
+  loadCustomPoints();
+
+  // Initial center on user position
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos => { map.setCenter({lat:pos.coords.latitude,lng:pos.coords.longitude}); map.setZoom(15); },
+      () => {},
+      {timeout:5000}
+    );
+  }
+}
+
+function loadGoogleMaps() {
+  const params = new URLSearchParams(window.location.search);
+  const key = params.get('key') || '';
+  const s = document.createElement('script');
+  s.src = key
+    ? `https://maps.googleapis.com/maps/api/js?key=${key}&callback=initMap&libraries=places&v=weekly`
+    : `https://maps.googleapis.com/maps/api/js?callback=initMap&libraries=places&v=weekly`;
+  s.async = true;
+  s.defer = true;
+  s.onerror = () => {
+    document.getElementById('map').innerHTML = `
+      <div style="width:100%;height:100%;background:var(--map-bg);display:flex;align-items:center;justify-content:center;">
+        <div style="text-align:center;color:var(--text-muted);max-width:420px;padding:40px;">
+          <div style="font-size:56px;margin-bottom:16px;">🔑</div>
+          <div style="font-size:18px;font-weight:700;color:var(--text-primary);margin-bottom:10px;">Clé API requise</div>
+          <div style="font-size:14px;line-height:1.6;margin-bottom:20px;">Ajoutez votre clé Google Maps dans l'URL :</div>
+          <code style="display:block;background:var(--bg-card);padding:14px;border-radius:10px;font-family:var(--font-mono);font-size:12px;color:var(--green);word-break:break-all;">?key=VOTRE_CLE_API</code>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:14px;">APIs: Maps JavaScript + Places</div>
+        </div>
+      </div>`;
+  };
+  document.head.appendChild(s);
+}
+
+// ===================== BOOT =====================
+(function boot() {
+  // Check if user is already logged in
+  if (loadUser()) {
+    showPage('pageApp');
+    initMapIfNeeded();
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "name": "chainage-pro",
+  "version": "1.0.0",
+  "description": "Chaînage Pro — Application de conformité des pharmacies au Maroc",
+  "main": "index.js",
+  "scripts": {
+    "build": "cp index.html www/index.html",
+    "sync": "npm run build && npx cap sync",
+    "ios": "npm run sync && npx cap open ios",
+    "dev": "npx serve . -p 3000"
+  },
+  "keywords": ["pharmacy", "maroc", "conformite", "chainage"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@capacitor/core": "^6.0.0",
+    "@capacitor/ios": "^6.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.0.0",
+    "serve": "^14.2.0"
+  }
+}
